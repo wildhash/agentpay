@@ -1,0 +1,29 @@
+{
+  "name": "agentpay",
+  "version": "1.0.0",
+  "description": "AI-native payments with MNEE: escrow + verification + instant partial/full refunds for autonomous agents",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "node": "hardhat node",
+    "demo": "node scripts/demo-scenario.js",
+    "verifier": "node verifier/server.js",
+    "web": "cd web && python3 -m http.server 8080"
+  },
+  "keywords": ["ethereum", "escrow", "ai", "agents", "web3"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.9.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.4"
+  }
+}
