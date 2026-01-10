@@ -34,7 +34,7 @@ AgentPay is a decentralized escrow system built on Ethereum that enables trustle
 ### Prerequisites
 
 - Node.js 16+ and npm
-- Python 3 (for web demo)
+- Python 3 (for web demo and Python SDK)
 - Git
 
 ### Installation
@@ -46,6 +46,9 @@ cd agentpay
 
 # Install dependencies
 npm install
+
+# (Optional) Install Python SDK dependencies
+pip install -r requirements.txt
 ```
 
 ### Setup
@@ -130,7 +133,7 @@ agentpay/
 
 ## 📖 Usage
 
-### Using the SDK
+### Using the JavaScript SDK
 
 ```javascript
 const AgentPaySDK = require('./sdk/AgentPaySDK');
@@ -158,6 +161,39 @@ await sdk.scoreAndResolve(taskId, 85);  // Score 0-100
 // Get task details
 const task = await sdk.getTask(taskId);
 console.log(task);
+```
+
+### Using the Python SDK
+
+```python
+from sdk.AgentPaySDK import AgentPaySDK
+
+# Initialize SDK
+sdk = AgentPaySDK(
+    provider_url='http://127.0.0.1:8545',
+    contract_address='0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    private_key='your-private-key'
+)
+
+# Create a task
+result = sdk.create_task(
+    payee_address='0xPayeeAddress',
+    description='Task description',
+    amount_eth=0.1
+)
+task_id = result['taskId']
+
+# Submit deliverable (as payee)
+sdk.submit_deliverable(task_id, 'ipfs://QmHash...')
+
+# Score and resolve (as verifier)
+result = sdk.score_and_resolve(task_id, 85)
+print(f"Payee receives: {result['payeeAmount']} ETH")
+print(f"Refund: {result['refundAmount']} ETH")
+
+# Get task details
+task = sdk.get_task(task_id)
+print(task)
 ```
 
 ### Using the Smart Contract Directly

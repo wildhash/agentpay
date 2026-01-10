@@ -10,8 +10,10 @@
     "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
     "node": "hardhat node",
     "demo": "node scripts/demo-scenario.js",
+    "example": "node scripts/example.js",
     "verifier": "node verifier/server.js",
-    "web": "cd web && python3 -m http.server 8080"
+    "web": "cd web && python3 -m http.server 8080",
+    "validate": "node scripts/validate.js"
   },
   "keywords": ["ethereum", "escrow", "ai", "agents", "web3"],
   "author": "",
