@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentPay - MNEE Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .accounts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .account {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .account h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .account-info {
+            font-family: monospace;
+            font-size: 0.85em;
+            word-break: break-all;
+            margin-bottom: 8px;
+        }
+        
+        .balance {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .events {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .event {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .event-name {
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+        
+        .event-details {
+            font-size: 0.9em;
+            color: #666;
+            font-family: monospace;
+        }
+        
+        .task-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .task {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-id {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .task-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .status-Created {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .status-Submitted {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .status-Resolved {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-Cancelled {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .task-info {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .task-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .score-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AgentPay</h1>
+            <p>AI-Native Payments with MNEE: Escrow + Verification + Instant Partial/Full Refunds</p>
+        </header>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+        
+        <!-- Accounts & Balances -->
+        <div class="card">
+            <h2>💰 Accounts & Balances</h2>
+            <div class="accounts" id="accounts">
+                <div class="loading">Loading accounts...</div>
+            </div>
+        </div>
+        
+        <!-- Create Task -->
+        <div class="card">
+            <h2>📝 Create Task</h2>
+            <div class="form-group">
+                <label>Payer Account</label>
+                <select id="payerSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>Payee Account</label>
+                <select id="payeeSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>Task Description</label>
+                <textarea id="taskDescription" placeholder="Describe the task...">Market research report on AI agent economy</textarea>
+            </div>
+            <div class="form-group">
+                <label>Payment Amount (ETH)</label>
+                <input type="number" id="taskAmount" step="0.01" value="0.1" placeholder="0.1">
+            </div>
+            <button onclick="createTask()">Create Task</button>
+        </div>
+        
+        <!-- Tasks -->
+        <div class="card">
+            <h2>📋 Tasks</h2>
+            <button onclick="refreshTasks()">🔄 Refresh</button>
+            <div class="task-list" id="taskList">
+                <div class="loading">No tasks yet</div>
+            </div>
+        </div>
+        
+        <!-- Events -->
+        <div class="card">
+            <h2>📡 Events</h2>
+            <button onclick="refreshEvents()">🔄 Refresh</button>
+            <div class="events" id="eventList">
+                <div class="loading">No events yet</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script>
+        let provider;
+        let accounts = [];
+        let contractAddress;
+        let contractABI;
+        let contract;
+        
+        // Initialize
+        async function init() {
+            try {
+                // Load deployment info
+                const deployment = await fetch('../deployments/localhost-deployment.json').then(r => r.json());
+                contractAddress = deployment.contractAddress;
+                
+                // Load ABI
+                contractABI = await fetch('../sdk/AgentEscrow.abi.json').then(r => r.json());
+                
+                // Connect to provider
+                provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
+                contract = new ethers.Contract(contractAddress, contractABI, provider);
+                
+                // Get accounts
+                accounts = await provider.listAccounts();
+                
+                // Display accounts
+                displayAccounts();
+                
+                // Populate selects
+                populateSelects();
+                
+                // Load tasks and events
+                await refreshTasks();
+                await refreshEvents();
+                
+                // Listen to events
+                listenToEvents();
+                
+                console.log('Initialized with contract:', contractAddress);
+            } catch (error) {
+                showError('Failed to initialize: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        async function displayAccounts() {
+            const container = document.getElementById('accounts');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < Math.min(accounts.length, 3); i++) {
+                const balance = await provider.getBalance(accounts[i]);
+                const div = document.createElement('div');
+                div.className = 'account';
+                div.innerHTML = `
+                    <h3>Account ${i}</h3>
+                    <div class="account-info">${accounts[i]}</div>
+                    <div class="balance">${ethers.utils.formatEther(balance)} ETH</div>
+                `;
+                container.appendChild(div);
+            }
+        }
+        
+        function populateSelects() {
+            const payerSelect = document.getElementById('payerSelect');
+            const payeeSelect = document.getElementById('payeeSelect');
+            
+            accounts.forEach((acc, i) => {
+                const option1 = document.createElement('option');
+                option1.value = acc;
+                option1.textContent = `Account ${i} - ${acc.substring(0, 10)}...`;
+                payerSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = acc;
+                option2.textContent = `Account ${i} - ${acc.substring(0, 10)}...`;
+                payeeSelect.appendChild(option2);
+            });
+            
+            // Default: account 0 as payer, account 1 as payee
+            payerSelect.selectedIndex = 0;
+            payeeSelect.selectedIndex = 1;
+        }
+        
+        async function createTask() {
+            try {
+                const payerAddress = document.getElementById('payerSelect').value;
+                const payeeAddress = document.getElementById('payeeSelect').value;
+                const description = document.getElementById('taskDescription').value;
+                const amount = document.getElementById('taskAmount').value;
+                
+                if (payerAddress === payeeAddress) {
+                    showError('Payer and payee cannot be the same');
+                    return;
+                }
+                
+                if (!description || !amount) {
+                    showError('Please fill all fields');
+                    return;
+                }
+                
+                showSuccess('Creating task...');
+                
+                const signer = provider.getSigner(payerAddress);
+                const contractWithSigner = contract.connect(signer);
+                
+                const tx = await contractWithSigner.createTask(
+                    payeeAddress,
+                    description,
+                    { value: ethers.utils.parseEther(amount) }
+                );
+                
+                showSuccess('Transaction sent. Waiting for confirmation...');
+                await tx.wait();
+                
+                showSuccess('Task created successfully!');
+                
+                // Refresh
+                await displayAccounts();
+                await refreshTasks();
+                
+            } catch (error) {
+                showError('Error creating task: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        async function refreshTasks() {
+            try {
+                const taskCounter = await contract.taskCounter();
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+                
+                if (taskCounter.toNumber() === 0) {
+                    taskList.innerHTML = '<div class="loading">No tasks yet</div>';
+                    return;
+                }
+                
+                for (let i = 0; i < taskCounter.toNumber(); i++) {
+                    const task = await contract.getTask(i);
+                    const div = document.createElement('div');
+                    div.className = 'task';
+                    
+                    const status = ['Created', 'Submitted', 'Resolved', 'Cancelled'][task[4]];
+                    
+                    div.innerHTML = `
+                        <div class="task-header">
+                            <span class="task-id">Task #${i}</span>
+                            <span class="task-status status-${status}">${status}</span>
+                        </div>
+                        <div class="task-info"><strong>Description:</strong> ${task[3]}</div>
+                        <div class="task-info"><strong>Amount:</strong> ${ethers.utils.formatEther(task[2])} ETH</div>
+                        <div class="task-info"><strong>Payer:</strong> ${task[0].substring(0, 20)}...</div>
+                        <div class="task-info"><strong>Payee:</strong> ${task[1].substring(0, 20)}...</div>
+                        ${task[7] ? `<div class="task-info"><strong>Deliverable:</strong> ${task[7]}</div>` : ''}
+                        ${task[8] > 0 ? `<div class="score-display">Score: ${task[8]}/100</div>` : ''}
+                        <div class="task-actions">
+                            ${status === 'Created' ? `<button onclick="submitDeliverable(${i})">Submit Deliverable</button>` : ''}
+                            ${status === 'Submitted' ? `<button onclick="verifyTask(${i})">Verify & Resolve</button>` : ''}
+                            ${status === 'Created' ? `<button onclick="cancelTask(${i})">Cancel</button>` : ''}
+                        </div>
+                    `;
+                    
+                    taskList.appendChild(div);
+                }
+            } catch (error) {
+                console.error('Error refreshing tasks:', error);
+            }
+        }
+        
+        async function submitDeliverable(taskId) {
+            try {
+                const task = await contract.getTask(taskId);
+                const payeeAddress = task[1];
+                
+                const deliverable = prompt('Enter deliverable hash (e.g., IPFS hash):');
+                if (!deliverable) return;
+                
+                showSuccess('Submitting deliverable...');
+                
+                const signer = provider.getSigner(payeeAddress);
+                const contractWithSigner = contract.connect(signer);
+                
+                const tx = await contractWithSigner.submitDeliverable(taskId, deliverable);
+                await tx.wait();
+                
+                showSuccess('Deliverable submitted successfully!');
+                await refreshTasks();
+                
+            } catch (error) {
+                showError('Error submitting deliverable: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        async function verifyTask(taskId) {
+            try {
+                // Use account 0 as verifier (deployer)
+                const verifierAddress = accounts[0];
+                
+                const score = prompt('Enter score (0-100):');
+                if (score === null) return;
+                
+                const scoreNum = parseInt(score);
+                if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 100) {
+                    showError('Score must be between 0 and 100');
+                    return;
+                }
+                
+                showSuccess('Verifying and resolving...');
+                
+                const signer = provider.getSigner(verifierAddress);
+                const contractWithSigner = contract.connect(signer);
+                
+                const tx = await contractWithSigner.scoreAndResolve(taskId, scoreNum);
+                await tx.wait();
+                
+                showSuccess('Task resolved successfully!');
+                await displayAccounts();
+                await refreshTasks();
+                
+            } catch (error) {
+                showError('Error verifying task: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        async function cancelTask(taskId) {
+            try {
+                const task = await contract.getTask(taskId);
+                const payerAddress = task[0];
+                
+                if (!confirm('Are you sure you want to cancel this task?')) return;
+                
+                showSuccess('Cancelling task...');
+                
+                const signer = provider.getSigner(payerAddress);
+                const contractWithSigner = contract.connect(signer);
+                
+                const tx = await contractWithSigner.cancelTask(taskId);
+                await tx.wait();
+                
+                showSuccess('Task cancelled successfully!');
+                await displayAccounts();
+                await refreshTasks();
+                
+            } catch (error) {
+                showError('Error cancelling task: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        async function refreshEvents() {
+            try {
+                const eventList = document.getElementById('eventList');
+                eventList.innerHTML = '<div class="loading">Loading events...</div>';
+                
+                const events = await contract.queryFilter('*');
+                
+                if (events.length === 0) {
+                    eventList.innerHTML = '<div class="loading">No events yet</div>';
+                    return;
+                }
+                
+                eventList.innerHTML = '';
+                
+                // Reverse to show newest first
+                events.reverse().forEach(event => {
+                    const div = document.createElement('div');
+                    div.className = 'event';
+                    div.innerHTML = `
+                        <div class="event-name">${event.event}</div>
+                        <div class="event-details">Block: ${event.blockNumber} | TX: ${event.transactionHash.substring(0, 20)}...</div>
+                    `;
+                    eventList.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error refreshing events:', error);
+            }
+        }
+        
+        function listenToEvents() {
+            contract.on('*', (event) => {
+                console.log('New event:', event);
+                refreshEvents();
+                refreshTasks();
+                displayAccounts();
+            });
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
