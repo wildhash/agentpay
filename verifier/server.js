@@ -30,6 +30,7 @@ const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
 const VERIFIER_PRIVATE_KEY = process.env.VERIFIER_PRIVATE_KEY;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const MOCK_VERIFIER = process.env.MOCK_VERIFIER === 'true';
 
 // Contract ABI (minimal for verification)
 const ESCROW_ABI = [
@@ -269,7 +270,11 @@ async function scoreDeliverable(taskDescription, deliverableHash) {
   // Try Claude first, then OpenAI
   let result;
   try {
-    if (ANTHROPIC_API_KEY) {
+    if (MOCK_VERIFIER) {
+      // Mock mode: use deterministic scoring
+      result = simulateScoring(taskDescription, deliverableContent);
+      result.model = 'mock';
+    } else if (ANTHROPIC_API_KEY) {
       result = await scoreWithClaude(taskDescription, deliverableContent);
       result.model = 'claude';
     } else if (OPENAI_API_KEY) {
@@ -332,13 +337,25 @@ function simulateScoring(taskDescription, deliverableContent) {
  * Health check endpoint
  */
 app.get('/health', (req, res) => {
+  // Determine operational mode
+  let mode;
+  if (MOCK_VERIFIER) {
+    mode = 'mock';
+  } else if (ANTHROPIC_API_KEY || OPENAI_API_KEY) {
+    mode = 'ai';
+  } else {
+    mode = 'simulated';
+  }
+
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
+    mode,
     config: {
       blockchain: !!contract,
       claude: !!ANTHROPIC_API_KEY,
       openai: !!OPENAI_API_KEY,
+      mock: MOCK_VERIFIER,
       contractAddress: CONTRACT_ADDRESS || 'not configured'
     }
   });
@@ -526,6 +543,14 @@ app.post('/batch-score', async (req, res) => {
 // ============ Start Server ============
 initBlockchain();
 
+// Determine display mode for startup message
+function getVerifierMode() {
+  if (MOCK_VERIFIER) return 'MOCK (Deterministic)';
+  if (ANTHROPIC_API_KEY) return 'Claude AI';
+  if (OPENAI_API_KEY) return 'OpenAI GPT-4';
+  return 'Simulated';
+}
+
 app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════════════╗
@@ -533,7 +558,7 @@ app.listen(PORT, () => {
 ╠══════════════════════════════════════════════════════════╣
 ║  Port: ${PORT}                                              ║
 ║  Contract: ${CONTRACT_ADDRESS ? CONTRACT_ADDRESS.substring(0,20) + '...' : 'Not configured'}                   ║
-║  LLM: ${ANTHROPIC_API_KEY ? 'Claude' : OPENAI_API_KEY ? 'OpenAI' : 'Simulated'}                                    ║
+║  Mode: ${getVerifierMode()}                              ║
 ╠══════════════════════════════════════════════════════════╣
 ║  Endpoints:                                              ║
 ║    GET  /health           - Service health check         ║

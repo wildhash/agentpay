@@ -2,11 +2,34 @@
 
 This guide will walk you through setting up and running AgentPay locally.
 
+## 🎯 For Judges: Fastest Path (3 Commands)
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start blockchain (keep running in terminal 1)
+npm run node
+
+# 3. Run full demo (in terminal 2)
+npm run demo:full
+```
+
+**That's it!** The demo auto-deploys contracts and runs the complete scenario.
+
+**For mainnet fork (uses real MNEE contract):**
+```bash
+npm run node:fork  # Instead of npm run node
+npm run demo:full  # Same command, uses forked mainnet
+```
+
+---
+
 ## Prerequisites
 
 - Node.js 16+ installed
-- Python 3 installed (for web demo)
 - Terminal access
+- (Optional) MetaMask for web UI
 
 ## Step-by-Step Setup
 
@@ -118,7 +141,11 @@ You can now:
 In another terminal:
 
 ```bash
+# With Claude or OpenAI API keys configured
 npm run verifier
+
+# Without API keys (deterministic mock scoring)
+npm run verifier:mock
 ```
 
 This starts the AI verifier REST API on port 3001.
@@ -132,6 +159,64 @@ Example:
 ```bash
 curl -X POST http://localhost:3001/verify/0
 ```
+
+---
+
+## 🌐 Mainnet Fork Mode (Recommended for Hackathon)
+
+Running on a mainnet fork lets you use the **real MNEE contract** while staying local:
+
+### Why Fork Mainnet?
+
+✅ Uses actual MNEE contract address: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF`  
+✅ Demonstrates real contract interaction  
+✅ No testnet faucet needed  
+✅ Deterministic and reliable  
+✅ Perfect for judges/demos  
+
+### How to Use
+
+**Step 1:** Start forked node (terminal 1):
+```bash
+npm run node:fork
+```
+
+This forks Ethereum mainnet at the latest block, giving you:
+- Real MNEE contract at its mainnet address
+- Unlimited ETH on test accounts for gas
+- All mainnet state locally
+
+**Step 2:** Run demo (terminal 2):
+```bash
+npm run demo:full
+```
+
+The deployment script automatically detects the fork and uses the real MNEE contract!
+
+### Manual Fork Deployment
+
+If you want to deploy manually on the fork:
+
+```bash
+# Terminal 1: Start fork
+npm run node:fork
+
+# Terminal 2: Deploy
+npm run deploy:fork
+
+# Terminal 3: Run demo
+npm run demo
+```
+
+### Viewing Transactions
+
+When running on fork, you'll see:
+- MNEE token transfers at `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF`
+- Escrow contract interactions
+- Quality-based payment splits
+- All events logged
+
+---
 
 ## Architecture Overview
 
