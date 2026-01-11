@@ -282,7 +282,7 @@ describe("AgentEscrowMNEE", function () {
     });
 
     it("Should update reputation stats on success", async function () {
-      const { escrow, payer, payee, verifier } = await loadFixture(createAndSubmitFixture);
+      const { escrow, payee, verifier } = await loadFixture(createAndSubmitFixture);
 
       await escrow.connect(verifier).scoreAndResolve(0, 85);
 
@@ -442,7 +442,7 @@ describe("AgentEscrowMNEE", function () {
     });
 
     it("Should handle multiple concurrent tasks", async function () {
-      const { escrow, mnee, payer, payee, verifier } = await loadFixture(deployFixture);
+      const { escrow, payer, payee, verifier } = await loadFixture(deployFixture);
 
       // Create 5 tasks
       for (let i = 0; i < 5; i++) {
