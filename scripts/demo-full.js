@@ -75,6 +75,13 @@ async function main() {
   log('║     AI-Native Payments with MNEE Stablecoin             ║', 'bright');
   log('╚══════════════════════════════════════════════════════════╝\n', 'bright');
 
+  // Check if fork mode is requested
+  const isForkMode = process.env.FORK_MAINNET === "true";
+  
+  if (isForkMode) {
+    log('⚡ Fork mode detected - will use real MNEE contract', 'cyan');
+  }
+
   try {
     // Step 1: Check if node is running
     log('📡 Step 1: Checking local blockchain...', 'cyan');
@@ -83,13 +90,23 @@ async function main() {
     if (!isNodeRunning) {
       log('❌ Local blockchain not running!', 'red');
       log('\nPlease start the local node in a separate terminal:', 'yellow');
-      log('   npm run node', 'yellow');
-      log('\nFor mainnet fork (uses real MNEE contract):', 'yellow');
-      log('   npm run node:fork\n', 'yellow');
+      if (isForkMode) {
+        log('   npm run node:fork  (Already in fork mode)', 'yellow');
+      } else {
+        log('   npm run node', 'yellow');
+        log('\nFor mainnet fork (uses real MNEE contract):', 'yellow');
+        log('   FORK_MAINNET=true npm run demo:full', 'yellow');
+        log('   OR: npm run node:fork (in separate terminal)', 'yellow');
+      }
+      log('');
       process.exit(1);
     }
     
-    log('✅ Local blockchain is running\n', 'green');
+    log('✅ Local blockchain is running', 'green');
+    if (isForkMode) {
+      log('   📍 Using mainnet fork with real MNEE at 0x8cced...', 'cyan');
+    }
+    log('');
 
     // Step 2: Check deployment
     log('📋 Step 2: Checking contract deployment...', 'cyan');

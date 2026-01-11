@@ -21,24 +21,14 @@ module.exports = {
   networks: {
     hardhat: {
       chainId: 31337,
-      // Optional: Uncomment to fork mainnet for MNEE testing
-      // forking: {
-      //   url: MAINNET_RPC_URL,
-      //   enabled: process.env.FORK_MAINNET === "true"
-      // }
+      forking: process.env.FORK_MAINNET === "true" ? {
+        url: MAINNET_RPC_URL,
+        enabled: true
+      } : undefined
     },
     localhost: {
       url: "http://127.0.0.1:8545",
       chainId: 31337
-    },
-    // Mainnet fork for local development (uses real MNEE contract)
-    mainnetFork: {
-      url: "http://127.0.0.1:8545",
-      chainId: 31337,
-      forking: {
-        url: MAINNET_RPC_URL,
-        enabled: true
-      }
     },
     sepolia: {
       url: SEPOLIA_RPC_URL,
