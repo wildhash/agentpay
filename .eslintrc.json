@@ -1,7 +1,8 @@
 {
   "env": {
-    "node": true,
+    "browser": true,
     "es2021": true,
+    "node": true,
     "mocha": true
   },
   "extends": [
@@ -10,23 +11,7 @@
   ],
   "parserOptions": {
     "ecmaVersion": "latest",
-    "sourceType": "commonjs"
+    "sourceType": "module"
   },
-  "globals": {
-    "artifacts": "readonly",
-    "ethers": "readonly",
-    "network": "readonly"
-  },
-  "rules": {
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "no-console": "off"
-  },
-  "ignorePatterns": [
-    "node_modules/",
-    "artifacts/",
-    "cache/",
-    "coverage/",
-    "typechain-types/",
-    "deployments/*.json"
-  ]
+  "rules": {}
 }

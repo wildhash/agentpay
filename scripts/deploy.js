@@ -3,7 +3,7 @@
  * Deploys AgentEscrowMNEE contract with MNEE token support
  */
 
-const { ethers } = require("hardhat");
+const { ethers, artifacts } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 
