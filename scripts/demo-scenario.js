@@ -1,192 +1,308 @@
-const AgentPaySDK = require("../sdk/AgentPaySDK");
+/**
+ * AgentPay Demo Scenario
+ * 
+ * Demonstrates the complete flow:
+ * 1. Agent A creates a task with MNEE deposit
+ * 2. Agent B submits deliverable
+ * 3. AI Verifier scores the output
+ * 4. Contract auto-settles with partial/full payment
+ */
+
+const { ethers } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
-const { ethers } = require("ethers");
 
-/**
- * Demo Scenario: Payer agent buys a report, verifier scores, contract splits payout/refund
- */
+// Demo configuration
+const DEMO_TASK_AMOUNT = "100"; // 100 MNEE
+const DEMO_TASK_DESCRIPTION = `
+Create a Python function that:
+1. Takes a list of numbers as input
+2. Returns the sum of all even numbers
+3. Includes proper error handling
+4. Has docstring documentation
+`;
+
+const DEMO_DELIVERABLE = `
+def sum_even_numbers(numbers):
+    """
+    Calculate the sum of all even numbers in a list.
+    
+    Args:
+        numbers: A list of integers
+        
+    Returns:
+        int: Sum of all even numbers in the list
+        
+    Raises:
+        TypeError: If input is not a list or contains non-integers
+        
+    Example:
+        >>> sum_even_numbers([1, 2, 3, 4, 5, 6])
+        12
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("Input must be a list")
+    
+    total = 0
+    for num in numbers:
+        if not isinstance(num, (int, float)):
+            raise TypeError(f"Invalid element: {num}")
+        if num % 2 == 0:
+            total += num
+    
+    return total
+
+# Test
+if __name__ == "__main__":
+    test_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    result = sum_even_numbers(test_data)
+    print(f"Sum of even numbers: {result}")  # Output: 30
+`;
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function runDemo() {
-  console.log("=".repeat(60));
-  console.log("AgentPay Demo Scenario");
-  console.log("=".repeat(60));
-  console.log();
+async function main() {
+  console.log("\n╔══════════════════════════════════════════════════════════╗");
+  console.log("║           AgentPay Demo Scenario                         ║");
+  console.log("║    AI-Native Payments with MNEE Stablecoin               ║");
+  console.log("╚══════════════════════════════════════════════════════════╝\n");
+
+  // Load deployment info
+  const deploymentsDir = path.join(__dirname, "..", "deployments");
+  let deploymentFile = path.join(deploymentsDir, "localhost-deployment.json");
   
-  // Load deployment
-  const deploymentPath = path.join(__dirname, "../deployments/localhost-deployment.json");
-  if (!fs.existsSync(deploymentPath)) {
-    console.error("Deployment not found. Run 'npm run deploy:local' first.");
-    process.exit(1);
+  if (!fs.existsSync(deploymentFile)) {
+    deploymentFile = path.join(deploymentsDir, "hardhat-deployment.json");
   }
   
-  const deployment = JSON.parse(fs.readFileSync(deploymentPath, "utf8"));
-  console.log("Contract Address:", deployment.contractAddress);
-  console.log();
+  if (!fs.existsSync(deploymentFile)) {
+    console.log("❌ No deployment found. Run: npm run deploy:local first");
+    process.exit(1);
+  }
+
+  const deployment = JSON.parse(fs.readFileSync(deploymentFile, "utf8"));
+  console.log(`📋 Loading deployment from: ${deploymentFile}`);
+  console.log(`   Escrow: ${deployment.contracts.AgentEscrowMNEE}`);
+  console.log(`   MNEE: ${deployment.contracts.MNEE}\n`);
+
+  // Get signers
+  const [owner, payer, payee, verifier] = await ethers.getSigners();
   
-  // Setup test accounts (Hardhat default accounts)
-  const payerKey = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"; // Account #1
-  const payeeKey = "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"; // Account #2
-  const verifierKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Account #0 (deployer)
+  console.log("👥 Actors:");
+  console.log(`   Owner/Admin: ${owner.address}`);
+  console.log(`   Payer (Agent A): ${payer.address}`);
+  console.log(`   Payee (Agent B): ${payee.address}`);
+  console.log(`   Verifier: ${verifier.address}\n`);
+
+  // Connect to contracts
+  const escrowABI = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "..", "sdk", "AgentEscrowMNEE.abi.json"), "utf8")
+  );
+  const mneeABI = [
+    "function balanceOf(address) view returns (uint256)",
+    "function transfer(address, uint256) returns (bool)",
+    "function approve(address, uint256) returns (bool)",
+    "function mint(address, uint256)",
+    "function decimals() view returns (uint8)"
+  ];
+
+  const escrow = new ethers.Contract(deployment.contracts.AgentEscrowMNEE, escrowABI, owner);
+  const mnee = new ethers.Contract(deployment.contracts.MNEE, mneeABI, owner);
+
+  // ============ SETUP ============
+  console.log("═══════════════════════════════════════════════════════════");
+  console.log("SETUP: Distributing MNEE tokens");
+  console.log("═══════════════════════════════════════════════════════════\n");
+
+  const decimals = await mnee.decimals();
+  const amount = ethers.parseUnits("1000", decimals);
   
-  const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
-  const payerWallet = new ethers.Wallet(payerKey, provider);
-  const payeeWallet = new ethers.Wallet(payeeKey, provider);
-  const verifierWallet = new ethers.Wallet(verifierKey, provider);
-  
-  console.log("Actors:");
-  console.log("- Payer Agent:", payerWallet.address);
-  console.log("- Payee Agent:", payeeWallet.address);
-  console.log("- AI Verifier:", verifierWallet.address);
-  console.log();
-  
-  // Initialize SDKs for each actor
-  const payerSDK = new AgentPaySDK("http://127.0.0.1:8545", deployment.contractAddress, payerKey);
-  const payeeSDK = new AgentPaySDK("http://127.0.0.1:8545", deployment.contractAddress, payeeKey);
-  const verifierSDK = new AgentPaySDK("http://127.0.0.1:8545", deployment.contractAddress, verifierKey);
-  
-  // Step 1: Check initial balances
-  console.log("Step 1: Initial Balances");
-  console.log("-".repeat(60));
-  const payerBalanceBefore = await payerSDK.getBalance(payerWallet.address);
-  const payeeBalanceBefore = await payeeSDK.getBalance(payeeWallet.address);
-  console.log(`Payer balance: ${parseFloat(payerBalanceBefore).toFixed(4)} ETH`);
-  console.log(`Payee balance: ${parseFloat(payeeBalanceBefore).toFixed(4)} ETH`);
-  console.log();
-  
+  // Mint MNEE to payer
+  await mnee.mint(payer.address, amount);
+  console.log(`✓ Minted 1000 MNEE to Payer`);
+
+  // Payer approves escrow
+  await mnee.connect(payer).approve(await escrow.getAddress(), ethers.MaxUint256);
+  console.log(`✓ Payer approved escrow contract`);
+
+  // Add verifier role
+  await escrow.addVerifier(verifier.address);
+  console.log(`✓ Added verifier role`);
+
+  // Show balances
+  const payerBalance = await mnee.balanceOf(payer.address);
+  const payeeBalance = await mnee.balanceOf(payee.address);
+  console.log(`\n📊 Initial Balances:`);
+  console.log(`   Payer: ${ethers.formatUnits(payerBalance, decimals)} MNEE`);
+  console.log(`   Payee: ${ethers.formatUnits(payeeBalance, decimals)} MNEE\n`);
+
   await sleep(1000);
+
+  // ============ STEP 1: CREATE TASK ============
+  console.log("═══════════════════════════════════════════════════════════");
+  console.log("STEP 1: Agent A creates task with MNEE deposit");
+  console.log("═══════════════════════════════════════════════════════════\n");
+
+  const taskAmount = ethers.parseUnits(DEMO_TASK_AMOUNT, decimals);
   
-  // Step 2: Payer creates task
-  console.log("Step 2: Payer Agent Creates Task");
-  console.log("-".repeat(60));
-  const taskAmount = "0.1"; // 0.1 ETH
-  const taskDescription = "Comprehensive market research report on AI agent economy";
+  console.log(`📝 Task Description:`);
+  console.log(`   ${DEMO_TASK_DESCRIPTION.trim().split('\n').join('\n   ')}\n`);
+  console.log(`💰 Amount: ${DEMO_TASK_AMOUNT} MNEE`);
+  console.log(`⏱️  Timeout: 7 days\n`);
+
+  const createTx = await escrow.connect(payer).createTask(
+    payee.address,
+    DEMO_TASK_DESCRIPTION.trim(),
+    taskAmount,
+    0 // default timeout
+  );
+  const createReceipt = await createTx.wait();
   
-  console.log(`Creating task: "${taskDescription}"`);
-  console.log(`Payment amount: ${taskAmount} ETH`);
+  // Get task ID from event
+  const taskCreatedEvent = createReceipt.logs.find(
+    log => log.fragment?.name === "TaskCreated"
+  );
+  const taskId = taskCreatedEvent ? taskCreatedEvent.args[0] : 0n;
+
+  console.log(`✅ Task Created!`);
+  console.log(`   Task ID: ${taskId}`);
+  console.log(`   TX Hash: ${createTx.hash}`);
+  console.log(`   Gas Used: ${createReceipt.gasUsed}\n`);
+
+  // Show updated balances
+  const payerBalanceAfterCreate = await mnee.balanceOf(payer.address);
+  const escrowBalance = await mnee.balanceOf(await escrow.getAddress());
+  console.log(`📊 Balances After Creation:`);
+  console.log(`   Payer: ${ethers.formatUnits(payerBalanceAfterCreate, decimals)} MNEE (deposited ${DEMO_TASK_AMOUNT})`);
+  console.log(`   Escrow: ${ethers.formatUnits(escrowBalance, decimals)} MNEE (locked)\n`);
+
+  await sleep(1500);
+
+  // ============ STEP 2: SUBMIT DELIVERABLE ============
+  console.log("═══════════════════════════════════════════════════════════");
+  console.log("STEP 2: Agent B submits deliverable");
+  console.log("═══════════════════════════════════════════════════════════\n");
+
+  // In production, this would be an IPFS hash
+  const deliverableHash = "ipfs://QmDemo" + Date.now();
   
-  const createResult = await payerSDK.createTask(payeeWallet.address, taskDescription, taskAmount);
-  const taskId = createResult.taskId;
-  
-  console.log(`✓ Task created with ID: ${taskId}`);
-  console.log(`  Transaction: ${createResult.txHash}`);
-  console.log();
-  
-  await sleep(1000);
-  
-  // Step 3: Check task status
-  console.log("Step 3: Task Status");
-  console.log("-".repeat(60));
-  let task = await payerSDK.getTask(taskId);
-  console.log(`Task ID: ${taskId}`);
-  console.log(`Status: ${task.status}`);
-  console.log(`Amount: ${task.amount} ETH`);
-  console.log(`Payer: ${task.payer}`);
-  console.log(`Payee: ${task.payee}`);
-  console.log();
-  
-  await sleep(1000);
-  
-  // Step 4: Payee submits deliverable
-  console.log("Step 4: Payee Agent Submits Deliverable");
-  console.log("-".repeat(60));
-  const deliverableHash = "ipfs://QmX7K8VbZjq3kN9v8PdZjL2MnWpY5xRtH4fQwE3bNcDaVf";
-  
-  console.log(`Submitting deliverable: ${deliverableHash}`);
-  
-  const submitResult = await payeeSDK.submitDeliverable(taskId, deliverableHash);
-  console.log(`✓ Deliverable submitted`);
-  console.log(`  Transaction: ${submitResult.txHash}`);
-  console.log();
-  
-  await sleep(1000);
-  
-  // Step 5: Updated task status
-  console.log("Step 5: Updated Task Status");
-  console.log("-".repeat(60));
-  task = await payerSDK.getTask(taskId);
-  console.log(`Task ID: ${taskId}`);
-  console.log(`Status: ${task.status}`);
-  console.log(`Deliverable: ${task.deliverableHash}`);
-  console.log();
-  
-  await sleep(1000);
-  
-  // Step 6: AI Verifier scores and resolves
-  console.log("Step 6: AI Verifier Scores and Resolves");
-  console.log("-".repeat(60));
-  
-  // Simulate AI scoring
-  console.log("AI analyzing deliverable...");
+  console.log(`📦 Deliverable Content:`);
+  console.log(`   ${DEMO_DELIVERABLE.trim().split('\n').slice(0, 10).join('\n   ')}...`);
+  console.log(`\n   Hash: ${deliverableHash}\n`);
+
+  const submitTx = await escrow.connect(payee).submitDeliverable(taskId, deliverableHash);
+  const submitReceipt = await submitTx.wait();
+
+  console.log(`✅ Deliverable Submitted!`);
+  console.log(`   TX Hash: ${submitTx.hash}`);
+  console.log(`   Gas Used: ${submitReceipt.gasUsed}\n`);
+
+  // Show task status
+  const taskAfterSubmit = await escrow.getTask(taskId);
+  console.log(`📋 Task Status: Submitted (awaiting verification)\n`);
+
+  await sleep(1500);
+
+  // ============ STEP 3: AI VERIFICATION ============
+  console.log("═══════════════════════════════════════════════════════════");
+  console.log("STEP 3: AI Verifier scores the deliverable");
+  console.log("═══════════════════════════════════════════════════════════\n");
+
+  // Simulated AI scoring (in production, call the verifier service)
+  console.log(`🤖 AI Analysis in progress...`);
   await sleep(2000);
+
+  // Simulate score based on deliverable quality
+  const aiScore = 85; // Good quality - meets most requirements
   
-  const score = 85; // High quality deliverable
-  console.log(`AI Score: ${score}/100`);
-  console.log(`Quality Assessment: Excellent`);
-  console.log();
-  
-  console.log("Resolving payment on blockchain...");
-  const resolveResult = await verifierSDK.scoreAndResolve(taskId, score);
-  
-  console.log(`✓ Task resolved`);
-  console.log(`  Transaction: ${resolveResult.txHash}`);
-  console.log(`  Payee receives: ${resolveResult.payeeAmount} ETH (${score}%)`);
-  console.log(`  Refund to payer: ${resolveResult.refundAmount} ETH (${100-score}%)`);
-  console.log();
-  
+  console.log(`\n📊 AI Scoring Results:`);
+  console.log(`   ┌─────────────────────────────────────┐`);
+  console.log(`   │  Overall Score:  ${aiScore}/100              │`);
+  console.log(`   ├─────────────────────────────────────┤`);
+  console.log(`   │  Completeness:   26/30 (✓ all req) │`);
+  console.log(`   │  Quality:        27/30 (✓ clean)   │`);
+  console.log(`   │  Accuracy:       20/25 (✓ works)   │`);
+  console.log(`   │  Relevance:      12/15 (✓ on task) │`);
+  console.log(`   └─────────────────────────────────────┘`);
+  console.log(`\n   Reasoning: "Code meets requirements with proper`);
+  console.log(`   error handling and documentation. Minor room for`);
+  console.log(`   improvement in edge case handling."\n`);
+
   await sleep(1000);
-  
-  // Step 7: Final task status
-  console.log("Step 7: Final Task Status");
-  console.log("-".repeat(60));
-  task = await payerSDK.getTask(taskId);
-  console.log(`Task ID: ${taskId}`);
-  console.log(`Status: ${task.status}`);
-  console.log(`Score: ${task.score}/100`);
-  console.log(`Resolved: ${task.resolved}`);
-  console.log();
-  
-  await sleep(1000);
-  
-  // Step 8: Final balances
-  console.log("Step 8: Final Balances");
-  console.log("-".repeat(60));
-  const payerBalanceAfter = await payerSDK.getBalance(payerWallet.address);
-  const payeeBalanceAfter = await payeeSDK.getBalance(payeeWallet.address);
-  
-  const payerChange = parseFloat(payerBalanceAfter) - parseFloat(payerBalanceBefore);
-  const payeeChange = parseFloat(payeeBalanceAfter) - parseFloat(payeeBalanceBefore);
-  
-  console.log(`Payer balance: ${parseFloat(payerBalanceAfter).toFixed(4)} ETH (${payerChange > 0 ? '+' : ''}${payerChange.toFixed(4)} ETH)`);
-  console.log(`Payee balance: ${parseFloat(payeeBalanceAfter).toFixed(4)} ETH (${payeeChange > 0 ? '+' : ''}${payeeChange.toFixed(4)} ETH)`);
-  console.log();
-  
-  // Summary
-  console.log("=".repeat(60));
-  console.log("Demo Summary");
-  console.log("=".repeat(60));
-  console.log(`✓ Task created and funded with ${taskAmount} ETH`);
-  console.log(`✓ Payee submitted deliverable`);
-  console.log(`✓ AI verifier scored deliverable: ${score}/100`);
-  console.log(`✓ Smart contract automatically split payment:`);
-  console.log(`  - ${score}% to payee (${resolveResult.payeeAmount} ETH)`);
-  console.log(`  - ${100-score}% refunded to payer (${resolveResult.refundAmount} ETH)`);
-  console.log();
-  console.log("Demo completed successfully! 🎉");
-  console.log("=".repeat(60));
+
+  // ============ STEP 4: RESOLVE & SETTLE ============
+  console.log("═══════════════════════════════════════════════════════════");
+  console.log("STEP 4: Contract auto-settles based on score");
+  console.log("═══════════════════════════════════════════════════════════\n");
+
+  // Calculate expected splits
+  const expectedPayeeAmount = (taskAmount * BigInt(aiScore)) / 100n;
+  const expectedRefund = taskAmount - expectedPayeeAmount;
+
+  console.log(`💰 Payment Calculation:`);
+  console.log(`   Score: ${aiScore}%`);
+  console.log(`   Total: ${ethers.formatUnits(taskAmount, decimals)} MNEE`);
+  console.log(`   → Payee receives: ${ethers.formatUnits(expectedPayeeAmount, decimals)} MNEE (${aiScore}%)`);
+  console.log(`   → Payer refund: ${ethers.formatUnits(expectedRefund, decimals)} MNEE (${100 - aiScore}%)\n`);
+
+  const resolveTx = await escrow.connect(verifier).scoreAndResolve(taskId, aiScore);
+  const resolveReceipt = await resolveTx.wait();
+
+  console.log(`✅ Task Resolved!`);
+  console.log(`   TX Hash: ${resolveTx.hash}`);
+  console.log(`   Gas Used: ${resolveReceipt.gasUsed}\n`);
+
+  await sleep(500);
+
+  // ============ FINAL STATE ============
+  console.log("═══════════════════════════════════════════════════════════");
+  console.log("FINAL STATE");
+  console.log("═══════════════════════════════════════════════════════════\n");
+
+  // Get final balances
+  const payerFinalBalance = await mnee.balanceOf(payer.address);
+  const payeeFinalBalance = await mnee.balanceOf(payee.address);
+  const escrowFinalBalance = await mnee.balanceOf(await escrow.getAddress());
+
+  // Get final task state
+  const finalTask = await escrow.getTask(taskId);
+
+  console.log(`📋 Task #${taskId} Final State:`);
+  console.log(`   Status: Resolved ✓`);
+  console.log(`   Score: ${finalTask.score}/100`);
+  console.log(`   Payee Amount: ${ethers.formatUnits(finalTask.payeeAmount, decimals)} MNEE`);
+  console.log(`   Refund Amount: ${ethers.formatUnits(finalTask.refundAmount, decimals)} MNEE\n`);
+
+  console.log(`📊 Final Balances:`);
+  console.log(`   Payer: ${ethers.formatUnits(payerFinalBalance, decimals)} MNEE`);
+  console.log(`   Payee: ${ethers.formatUnits(payeeFinalBalance, decimals)} MNEE`);
+  console.log(`   Escrow: ${ethers.formatUnits(escrowFinalBalance, decimals)} MNEE\n`);
+
+  // Get agent stats
+  const payeeStats = await escrow.getAgentStats(payee.address);
+  console.log(`🏆 Payee Reputation:`);
+  console.log(`   Tasks Completed: ${payeeStats[1]}`);
+  console.log(`   Successful (70+): ${payeeStats[2]}`);
+  console.log(`   Total Earned: ${ethers.formatUnits(payeeStats[3], decimals)} MNEE\n`);
+
+  console.log("═══════════════════════════════════════════════════════════");
+  console.log("                    DEMO COMPLETE! 🎉                      ");
+  console.log("═══════════════════════════════════════════════════════════\n");
+
+  console.log(`Summary:`);
+  console.log(`• Agent A deposited ${DEMO_TASK_AMOUNT} MNEE into escrow`);
+  console.log(`• Agent B submitted Python code as deliverable`);
+  console.log(`• AI scored the work at ${aiScore}/100`);
+  console.log(`• Agent B received ${ethers.formatUnits(expectedPayeeAmount, decimals)} MNEE`);
+  console.log(`• Agent A got ${ethers.formatUnits(expectedRefund, decimals)} MNEE refund`);
+  console.log(`\nThis is trustless, automated, AI-native payments! 🤖💰\n`);
 }
 
-if (require.main === module) {
-  runDemo()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error("Error running demo:", error);
-      process.exit(1);
-    });
-}
-
-module.exports = runDemo;
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

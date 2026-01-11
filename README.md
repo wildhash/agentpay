@@ -1,218 +1,204 @@
-# AgentPay (MNEE)
+# 🤖 AgentPay — AI-Native Payments with MNEE
 
-**AI-native payments with MNEE: escrow + verification + instant partial/full refunds for autonomous agents.**
+[![Hackathon](https://img.shields.io/badge/MNEE-Hackathon-purple)](https://mnee.io)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue)](https://soliditylang.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-AgentPay is a decentralized escrow system built on Ethereum that enables trustless payments between autonomous agents. It features an AI verifier service that scores deliverables (0-100) and triggers automatic full or partial refunds/releases based on quality assessment.
+> **Trustless escrow + AI verification + instant partial/full refunds for autonomous agents**
 
-## 🌟 Features
+AgentPay is a decentralized payment infrastructure built for the autonomous agent economy. Using MNEE stablecoin on Ethereum, it enables AI agents to transact trustlessly with automatic quality-based settlements.
 
-- **Smart Contract Escrow**: Secure fund locking with AgentEscrow.sol
-- **AI Verification**: Automated deliverable scoring (0-100)
-- **Partial Refunds**: Proportional payment splitting based on quality
-- **Agent-to-Agent**: Designed for autonomous agent interactions
-- **Web Demo**: Visual interface for testing and monitoring
-- **SDK**: Easy integration with TypeScript/JavaScript
+## 🎯 Problem Statement
 
-## 📋 Architecture
+As AI agents become more autonomous, they need to:
+- **Pay for services** (compute, data, other agents' work)
+- **Get paid for deliverables** without trusting counterparties  
+- **Handle disputes fairly** when output quality varies
+- **Scale transactions** without human intervention
+
+Traditional payment systems require trust and manual dispute resolution. AgentPay solves this with smart contract escrow and AI-powered verification.
+
+## 💡 Solution
 
 ```
-┌─────────────┐          ┌──────────────┐          ┌─────────────┐
-│ Payer Agent │─────────▶│ AgentEscrow  │◀─────────│ Payee Agent │
-│             │  Create  │   Contract   │  Submit  │             │
-└─────────────┘   Task   └──────┬───────┘ Deliver  └─────────────┘
-                                 │                                  
-                                 │ Score & Resolve                  
-                                 ▼                                  
-                         ┌──────────────┐                          
-                         │ AI Verifier  │                          
-                         │   Service    │                          
-                         └──────────────┘                          
+┌─────────────────────────────────────────────────────────────────────┐
+│                        AgentPay Architecture                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│   ┌──────────────┐         ┌──────────────┐         ┌────────────┐ │
+│   │  Agent A     │         │   Escrow     │         │  Agent B   │ │
+│   │  (Payer)     │────────▶│   Contract   │◀────────│  (Payee)   │ │
+│   │              │ Create  │              │ Submit  │            │ │
+│   │  💰 MNEE     │  Task   │  🔒 MNEE     │ Work    │  📦 Output │ │
+│   └──────────────┘         └──────┬───────┘         └────────────┘ │
+│                                   │                                 │
+│                                   │ Score                           │
+│                                   ▼                                 │
+│                           ┌──────────────┐                          │
+│                           │ AI Verifier  │                          │
+│                           │   Service    │                          │
+│                           │              │                          │
+│                           │  🤖 Claude   │                          │
+│                           │  Score 0-100 │                          │
+│                           └──────┬───────┘                          │
+│                                  │                                  │
+│                                  ▼                                  │
+│   ┌──────────────────────────────────────────────────────────────┐ │
+│   │                    Settlement Logic                          │ │
+│   │                                                              │ │
+│   │   Score: 85/100                                              │ │
+│   │   ├── Payee receives: 85 MNEE (85%)                         │ │
+│   │   └── Payer refund:   15 MNEE (15%)                         │ │
+│   │                                                              │ │
+│   └──────────────────────────────────────────────────────────────┘ │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
+
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| **MNEE Stablecoin** | USD-pegged payments for predictable value |
+| **Smart Escrow** | Funds locked until AI verification completes |
+| **AI Scoring** | Claude/GPT evaluates deliverables (0-100 scale) |
+| **Partial Refunds** | Proportional settlement based on quality score |
+| **Time-Locked Safety** | Auto-refund if payee doesn't deliver |
+| **Role-Based Access** | Only authorized verifiers can resolve disputes |
+| **Agent Reputation** | Track success rates and earnings on-chain |
+| **Gas Optimized** | Efficient contract design for high-volume usage |
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js 16+ and npm
-- Python 3 (for web demo and Python SDK)
+- Node.js 18+
 - Git
 
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/wildhash/agentpay.git
 cd agentpay
 
 # Install dependencies
 npm install
 
-# (Optional) Install Python SDK dependencies
-pip install -r requirements.txt
-```
-
-### Setup
-
-```bash
-# Copy environment example
+# Copy environment file
 cp .env.example .env
-
-# Edit .env if needed (optional for local testing)
 ```
 
-## 🧪 Testing Locally
+### Run Demo (Local)
 
-### 1. Start Local Blockchain
-
-In terminal 1:
 ```bash
+# Terminal 1: Start local blockchain
 npm run node
-```
 
-This starts a Hardhat local node with test accounts.
-
-### 2. Deploy Contract
-
-In terminal 2:
-```bash
+# Terminal 2: Deploy contracts
 npm run deploy:local
-```
 
-This deploys the AgentEscrow contract to localhost.
-
-### 3. Run Demo Scenario
-
-```bash
+# Terminal 3: Run demo scenario
 npm run demo
 ```
 
-This runs a complete demo:
-- Payer agent creates a task with 0.1 ETH
-- Payee agent submits deliverable
-- AI verifier scores (85/100)
-- Contract automatically splits: 85% to payee, 15% refund
+### Start Services
 
-### 4. Start Web Demo
-
-In terminal 3:
 ```bash
+# AI Verifier service (port 3001)
+npm run verifier
+
+# Web UI (port 8080)
 npm run web
 ```
 
-Open http://localhost:8080 in your browser to interact with the contract via web UI.
+Then open http://localhost:8080 and connect MetaMask!
 
-### 5. (Optional) Start AI Verifier Service
-
-In terminal 4:
-```bash
-npm run verifier
-```
-
-This starts the AI verifier REST API on port 3001.
-
-## 📁 Project Structure
+## 📋 Task Lifecycle
 
 ```
-agentpay/
-├── contracts/
-│   └── AgentEscrow.sol          # Main escrow smart contract
-├── sdk/
-│   ├── AgentPaySDK.js           # JavaScript SDK for interaction
-│   └── AgentEscrow.abi.json     # Contract ABI (generated)
-├── verifier/
-│   └── server.js                # AI verifier service
-├── scripts/
-│   ├── deploy.js                # Deployment script
-│   └── demo-scenario.js         # Demo scenario runner
-├── web/
-│   └── index.html               # Web demo interface
-├── deployments/                 # Deployment info (generated)
-├── hardhat.config.js            # Hardhat configuration
-└── package.json                 # Dependencies and scripts
+1. CREATED     Agent A deposits MNEE, defines task
+       ↓
+2. SUBMITTED   Agent B delivers output (IPFS hash)
+       ↓
+3. VERIFIED    AI scores quality (0-100)
+       ↓
+4. RESOLVED    Contract auto-splits payment
+
+Alternative paths:
+- CANCELLED   Payer cancels before submission → full refund
+- TIMED OUT   Deadline passes without submission → full refund
 ```
 
-## 📖 Usage
+## 🔧 Smart Contract API
 
-### Using the JavaScript SDK
-
-```javascript
-const AgentPaySDK = require('./sdk/AgentPaySDK');
-
-// Initialize SDK
-const sdk = new AgentPaySDK(
-  'http://127.0.0.1:8545',      // RPC URL
-  '0x5FbDB2315678afecb367f032d93F642f64180aa3',  // Contract address
-  'your-private-key'             // Private key
-);
-
-// Create a task
-const { taskId } = await sdk.createTask(
-  '0xPayeeAddress',
-  'Task description',
-  '0.1'  // Amount in ETH
-);
-
-// Submit deliverable (as payee)
-await sdk.submitDeliverable(taskId, 'ipfs://QmHash...');
-
-// Score and resolve (as verifier)
-await sdk.scoreAndResolve(taskId, 85);  // Score 0-100
-
-// Get task details
-const task = await sdk.getTask(taskId);
-console.log(task);
-```
-
-### Using the Python SDK
-
-```python
-from sdk.AgentPaySDK import AgentPaySDK
-
-# Initialize SDK
-sdk = AgentPaySDK(
-    provider_url='http://127.0.0.1:8545',
-    contract_address='0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    private_key='your-private-key'
-)
-
-# Create a task
-result = sdk.create_task(
-    payee_address='0xPayeeAddress',
-    description='Task description',
-    amount_eth=0.1
-)
-task_id = result['taskId']
-
-# Submit deliverable (as payee)
-sdk.submit_deliverable(task_id, 'ipfs://QmHash...')
-
-# Score and resolve (as verifier)
-result = sdk.score_and_resolve(task_id, 85)
-print(f"Payee receives: {result['payeeAmount']} ETH")
-print(f"Refund: {result['refundAmount']} ETH")
-
-# Get task details
-task = sdk.get_task(task_id)
-print(task)
-```
-
-### Using the Smart Contract Directly
+### Core Functions
 
 ```solidity
-// Create task
-AgentEscrow.createTask{value: 0.1 ether}(payeeAddress, "Task description");
+// Create a task with MNEE deposit
+function createTask(
+    address payee,
+    string description,
+    uint256 amount,
+    uint256 timeout
+) returns (uint256 taskId)
 
-// Submit deliverable
-AgentEscrow.submitDeliverable(taskId, "ipfs://QmHash...");
+// Submit deliverable (payee only)
+function submitDeliverable(
+    uint256 taskId,
+    string deliverableHash
+)
 
 // Score and resolve (verifier only)
-AgentEscrow.scoreAndResolve(taskId, 85);
+function scoreAndResolve(
+    uint256 taskId,
+    uint8 score  // 0-100
+)
+
+// Cancel before submission (payer only)
+function cancelTask(uint256 taskId, string reason)
+
+// Claim timeout refund (payer only)
+function claimTimeout(uint256 taskId)
 ```
 
-### Using the AI Verifier API
+### Events
+
+```solidity
+event TaskCreated(taskId, payer, payee, amount, description, timeout);
+event TaskSubmitted(taskId, deliverableHash, submittedAt);
+event TaskScored(taskId, score, verifier);
+event TaskResolved(taskId, payeeAmount, refundAmount, score);
+event TaskCancelled(taskId, refundAmount, reason);
+event TaskTimedOut(taskId, refundAmount);
+```
+
+## 🤖 AI Verifier API
+
+The verifier service evaluates deliverables using LLM scoring:
 
 ```bash
-# Verify a task
+# Score a deliverable (dry run)
+curl -X POST http://localhost:3001/score \
+  -H "Content-Type: application/json" \
+  -d '{
+    "taskDescription": "Create a Python sorting function",
+    "deliverableContent": "def sort(arr): return sorted(arr)"
+  }'
+
+# Response
+{
+  "score": 75,
+  "breakdown": {
+    "completeness": 22,
+    "quality": 20,
+    "accuracy": 18,
+    "relevance": 15
+  },
+  "reasoning": "Function works but lacks error handling and documentation",
+  "model": "claude"
+}
+
+# Verify and resolve on-chain
 curl -X POST http://localhost:3001/verify/0
 
 # Get task info
@@ -222,116 +208,158 @@ curl http://localhost:3001/task/0
 curl http://localhost:3001/health
 ```
 
-## 🌐 Deploy to Testnet (Sepolia)
-
-### 1. Configure Environment
-
-```bash
-# Edit .env
-PRIVATE_KEY=your_private_key_here
-SEPOLIA_RPC_URL=https://rpc.sepolia.org
-```
-
-### 2. Get Testnet ETH
-
-Get Sepolia ETH from a faucet:
-- https://sepoliafaucet.com/
-- https://www.alchemy.com/faucets/ethereum-sepolia
-
-### 3. Deploy
-
-```bash
-npm run deploy:sepolia
-```
-
-The deployment info will be saved to `deployments/sepolia-deployment.json`.
-
-## 🔑 Key Concepts
-
-### Task Lifecycle
-
-1. **Created**: Payer creates task and deposits funds
-2. **Submitted**: Payee submits deliverable
-3. **Resolved**: Verifier scores and funds are distributed
-4. **Cancelled**: Payer cancels before submission (full refund)
-
-### Scoring System
-
-- Score range: 0-100
-- Payee receives: `(score / 100) * amount`
-- Payer refund: `((100 - score) / 100) * amount`
-- Example: 85/100 score on 0.1 ETH → 0.085 ETH to payee, 0.015 ETH refund
-
-### AI Verifier
-
-The AI verifier simulates quality assessment. In production, replace with:
-- GPT-4/Claude for content quality
-- Custom ML models for specific domains
-- Multi-agent consensus scoring
-- Human-in-the-loop verification
-
-## 🧩 Smart Contract API
-
-### Functions
-
-- `createTask(address payee, string description) payable` - Create new task
-- `submitDeliverable(uint256 taskId, string deliverableHash)` - Submit work
-- `scoreAndResolve(uint256 taskId, uint8 score)` - Verify and resolve (verifier only)
-- `cancelTask(uint256 taskId)` - Cancel task (payer only, before submission)
-- `getTask(uint256 taskId)` - Get task details
-- `updateVerifier(address newVerifier)` - Update verifier (owner only)
-
-### Events
-
-- `TaskCreated(taskId, payer, payee, amount, description)`
-- `TaskSubmitted(taskId, deliverableHash)`
-- `TaskScored(taskId, score)`
-- `TaskResolved(taskId, payeeAmount, refundAmount)`
-- `TaskCancelled(taskId, refundAmount)`
-
-## 🛡️ Security Considerations
-
-- Funds are locked in contract until resolution
-- Only verifier can score tasks
-- Only payer can cancel before submission
-- Only payee can submit deliverables
-- Reentrancy protection via transfer ordering
-- Score validation (0-100)
-
 ## 🧪 Testing
 
 ```bash
-# Compile contracts
-npm run compile
-
-# Run tests (when test files are added)
+# Run all tests
 npm test
+
+# Run with gas reporting
+npm run test:gas
+
+# Run coverage
+npm run test:coverage
 ```
+
+### Test Coverage
+
+- ✅ Task creation (valid/invalid inputs)
+- ✅ Deliverable submission
+- ✅ Score and resolve (full/partial/zero payment)
+- ✅ Cancellation flows
+- ✅ Timeout handling
+- ✅ Access control (roles)
+- ✅ Edge cases (boundary scores)
+- ✅ Gas benchmarks
+
+## 🌐 Deployment
+
+### Testnet (Sepolia)
+
+```bash
+# Configure .env
+PRIVATE_KEY=your_private_key
+SEPOLIA_RPC_URL=https://rpc.sepolia.org
+
+# Deploy
+npm run deploy:sepolia
+```
+
+### Mainnet
+
+```bash
+# Configure .env with mainnet settings
+# MNEE will use: 0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF
+
+npm run deploy:mainnet
+```
+
+## 📁 Project Structure
+
+```
+agentpay/
+├── contracts/
+│   ├── AgentEscrowMNEE.sol    # Main escrow contract
+│   └── MockMNEE.sol           # Test token
+├── test/
+│   └── AgentEscrowMNEE.test.js # Comprehensive tests
+├── scripts/
+│   ├── deploy.js              # Deployment script
+│   └── demo-scenario.js       # Demo runner
+├── verifier/
+│   └── server.js              # AI verification service
+├── web/
+│   └── index.html             # Web interface
+├── sdk/
+│   └── AgentEscrowMNEE.abi.json
+├── deployments/               # Deployment artifacts
+├── hardhat.config.js
+└── package.json
+```
+
+## 🔒 Security
+
+- **ReentrancyGuard**: Prevents reentrancy attacks
+- **AccessControl**: Role-based permissions for verifiers
+- **SafeERC20**: Safe token transfers
+- **Pausable**: Emergency circuit breaker
+- **Input Validation**: Score range, amount limits
+- **Timeout Protection**: Automatic refunds on deadline
+
+### Audit Status
+- [ ] Internal review complete
+- [ ] External audit pending
+
+## 🛣️ Roadmap
+
+### Phase 1 (Current) ✅
+- MNEE escrow contract
+- AI verifier service
+- Web UI demo
+
+### Phase 2
+- Multi-verifier consensus
+- Milestone-based payments
+- Agent reputation NFTs
+- SDK for popular agent frameworks
+
+### Phase 3
+- Cross-chain support (L2s)
+- Streaming payments
+- Agent-to-agent credit lines
+- DAO governance for verifier selection
 
 ## 🤝 Contributing
 
-Contributions welcome! Please open an issue or PR.
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Write tests for new functionality
+4. Submit a pull request
 
 ## 📄 License
 
-MIT
+MIT License - see [LICENSE](LICENSE)
 
 ## 🔗 Links
 
-- Repository: https://github.com/wildhash/agentpay
-- Documentation: See this README
-- Issues: https://github.com/wildhash/agentpay/issues
+- **Demo**: [Live Demo](http://localhost:8080)
+- **Contract (Mainnet MNEE)**: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF`
+- **GitHub**: https://github.com/wildhash/agentpay
+- **MNEE**: https://mnee.io
 
-## 💡 Future Enhancements
+---
 
-- Multi-token support (ERC-20)
-- Milestone-based payments
-- Dispute resolution mechanism
-- Enhanced AI models
-- Cross-chain support
-- Governance for verifier selection
-- Reputation system for agents
-- Integration with existing AI agent frameworks
+## 📝 Devpost Submission
+
+### One-Liner
+AI-native payment infrastructure using MNEE stablecoin with smart contract escrow and LLM-powered quality verification for autonomous agent transactions.
+
+### Description
+AgentPay enables trustless payments between AI agents using MNEE stablecoin on Ethereum. When Agent A needs work done, they create a task and deposit MNEE into our escrow contract. Agent B completes the work and submits a deliverable. Our AI verifier (powered by Claude) evaluates the output quality and scores it 0-100. The contract automatically settles: if the score is 85/100, Agent B receives 85% of the payment and Agent A gets a 15% refund.
+
+This eliminates the trust problem in agent-to-agent commerce. No more disputes, no more manual escrow releases, no more hoping the other party acts fairly. The AI judges objectively, and the blockchain executes atomically.
+
+### Tech Stack
+- **Smart Contracts**: Solidity 0.8.20, OpenZeppelin, Hardhat
+- **Token**: MNEE ERC-20 Stablecoin (0x8cced...)
+- **AI Verifier**: Node.js, Express, Claude API
+- **Frontend**: Vanilla JS, Tailwind CSS, ethers.js
+- **Testing**: Chai, Hardhat Network Helpers
+
+### Use of MNEE
+The contract uses MNEE as the exclusive payment token via:
+- `IERC20.transferFrom()` for deposits
+- `IERC20.transfer()` for settlements
+- Full ERC-20 allowance/approval flow
+- 6 decimal precision matching USDC-style tokens
+
+### Future Roadmap
+1. Multi-agent consensus for dispute resolution
+2. Streaming payments for long-running tasks
+3. Cross-chain deployment (Arbitrum, Base, Optimism)
+4. Integration with LangChain, AutoGPT, CrewAI
+5. On-chain reputation system with soulbound tokens
 
 ---
 

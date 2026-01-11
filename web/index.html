@@ -1,635 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentPay - MNEE Demo</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-        
-        header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
-        
-        .accounts {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        
-        .account {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .account h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        
-        .account-info {
-            font-family: monospace;
-            font-size: 0.85em;
-            word-break: break-all;
-            margin-bottom: 8px;
-        }
-        
-        .balance {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #28a745;
-            margin-top: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        button {
-            background: #667eea;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 6px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-right: 10px;
-            margin-top: 10px;
-        }
-        
-        button:hover {
-            background: #5568d3;
-        }
-        
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .events {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .event {
-            background: #f8f9fa;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border-left: 4px solid #28a745;
-        }
-        
-        .event-name {
-            font-weight: bold;
-            color: #28a745;
-            margin-bottom: 5px;
-        }
-        
-        .event-details {
-            font-size: 0.9em;
-            color: #666;
-            font-family: monospace;
-        }
-        
-        .task-list {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .task {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .task-id {
-            font-weight: bold;
-            color: #667eea;
-            font-size: 1.1em;
-        }
-        
-        .task-status {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: bold;
-        }
-        
-        .status-Created {
-            background: #ffc107;
-            color: #000;
-        }
-        
-        .status-Submitted {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .status-Resolved {
-            background: #28a745;
-            color: white;
-        }
-        
-        .status-Cancelled {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .task-info {
-            margin-bottom: 8px;
-            font-size: 0.95em;
-        }
-        
-        .task-actions {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-            font-weight: bold;
-        }
-        
-        .error {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-        
-        .success {
-            background: #efe;
-            border: 1px solid #cfc;
-            color: #3c3;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-        
-        .score-display {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-            text-align: center;
-            margin: 20px 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentPay - AI-Native Payments with MNEE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <style>
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    .status-created { color: #3b82f6; }
+    .status-submitted { color: #f59e0b; }
+    .status-resolved { color: #10b981; }
+    .status-cancelled { color: #ef4444; }
+    .status-timedout { color: #6b7280; }
+    .score-excellent { color: #10b981; }
+    .score-good { color: #84cc16; }
+    .score-fair { color: #f59e0b; }
+    .score-poor { color: #ef4444; }
+    .loading { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🤖 AgentPay</h1>
-            <p>AI-Native Payments with MNEE: Escrow + Verification + Instant Partial/Full Refunds</p>
-        </header>
-        
-        <div id="error" class="error" style="display: none;"></div>
-        <div id="success" class="success" style="display: none;"></div>
-        
-        <!-- Accounts & Balances -->
-        <div class="card">
-            <h2>💰 Accounts & Balances</h2>
-            <div class="accounts" id="accounts">
-                <div class="loading">Loading accounts...</div>
-            </div>
+<body class="min-h-screen gradient-bg">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Header -->
+    <header class="text-center text-white mb-8">
+      <h1 class="text-4xl font-bold mb-2">🤖 AgentPay</h1>
+      <p class="text-xl opacity-90">AI-Native Payments with MNEE Stablecoin</p>
+      <p class="text-sm opacity-75 mt-2">Escrow + AI Verification + Instant Partial/Full Refunds</p>
+    </header>
+
+    <!-- Connection Card -->
+    <div class="card rounded-2xl shadow-xl p-6 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">Wallet Connection</h2>
+          <p id="walletStatus" class="text-gray-600">Not connected</p>
         </div>
-        
-        <!-- Create Task -->
-        <div class="card">
-            <h2>📝 Create Task</h2>
-            <div class="form-group">
-                <label>Payer Account</label>
-                <select id="payerSelect"></select>
-            </div>
-            <div class="form-group">
-                <label>Payee Account</label>
-                <select id="payeeSelect"></select>
-            </div>
-            <div class="form-group">
-                <label>Task Description</label>
-                <textarea id="taskDescription" placeholder="Describe the task...">Market research report on AI agent economy</textarea>
-            </div>
-            <div class="form-group">
-                <label>Payment Amount (ETH)</label>
-                <input type="number" id="taskAmount" step="0.01" value="0.1" placeholder="0.1">
-            </div>
-            <button onclick="createTask()">Create Task</button>
+        <div class="flex items-center gap-4">
+          <div id="balanceDisplay" class="hidden">
+            <span class="text-sm text-gray-500">MNEE Balance:</span>
+            <span id="mneeBalance" class="text-lg font-bold text-purple-600">0.00</span>
+          </div>
+          <button id="connectBtn" onclick="connectWallet()" 
+            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition">
+            Connect Wallet
+          </button>
         </div>
-        
-        <!-- Tasks -->
-        <div class="card">
-            <h2>📋 Tasks</h2>
-            <button onclick="refreshTasks()">🔄 Refresh</button>
-            <div class="task-list" id="taskList">
-                <div class="loading">No tasks yet</div>
-            </div>
-        </div>
-        
-        <!-- Events -->
-        <div class="card">
-            <h2>📡 Events</h2>
-            <button onclick="refreshEvents()">🔄 Refresh</button>
-            <div class="events" id="eventList">
-                <div class="loading">No events yet</div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <!-- Contract Config -->
+    <div class="card rounded-2xl shadow-xl p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Contract Configuration</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Escrow Contract Address</label>
+          <input type="text" id="contractAddress" placeholder="0x..." 
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+            value="">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">MNEE Token Address</label>
+          <input type="text" id="mneeAddress" placeholder="0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF" 
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+            value="0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF">
+        </div>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button onclick="initContracts()" 
+          class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm">
+          Initialize Contracts
+        </button>
+        <button onclick="approveMNEE()" id="approveBtn" disabled
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50">
+          Approve MNEE
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card rounded-2xl shadow-xl overflow-hidden mb-6">
+      <div class="flex border-b">
+        <button onclick="showTab('create')" id="tabCreate" 
+          class="flex-1 py-4 text-center font-medium border-b-2 border-purple-600 text-purple-600">
+          Create Task
+        </button>
+        <button onclick="showTab('tasks')" id="tabTasks"
+          class="flex-1 py-4 text-center font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+          View Tasks
+        </button>
+        <button onclick="showTab('submit')" id="tabSubmit"
+          class="flex-1 py-4 text-center font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+          Submit Work
+        </button>
+        <button onclick="showTab('verify')" id="tabVerify"
+          class="flex-1 py-4 text-center font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+          AI Verify
+        </button>
+      </div>
+
+      <!-- Create Task Tab -->
+      <div id="panelCreate" class="p-6">
+        <h3 class="text-lg font-semibold mb-4">Create New Task</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Payee Address</label>
+            <input type="text" id="payeeAddress" placeholder="0x..." 
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-mono">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Task Description</label>
+            <textarea id="taskDescription" rows="3" placeholder="Describe the task requirements..."
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Amount (MNEE)</label>
+              <input type="number" id="taskAmount" placeholder="100" step="0.01" min="1"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Timeout (Days)</label>
+              <input type="number" id="taskTimeout" placeholder="7" value="7" min="1" max="30"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+            </div>
+          </div>
+          <button onclick="createTask()" 
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition">
+            Create Task & Deposit MNEE
+          </button>
+        </div>
+      </div>
+
+      <!-- View Tasks Tab -->
+      <div id="panelTasks" class="p-6 hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Tasks</h3>
+          <button onclick="loadTasks()" class="text-purple-600 hover:text-purple-700 text-sm">↻ Refresh</button>
+        </div>
+        <div id="taskList" class="space-y-4">
+          <p class="text-gray-500 text-center py-8">Connect wallet and initialize contracts to view tasks</p>
+        </div>
+      </div>
+
+      <!-- Submit Deliverable Tab -->
+      <div id="panelSubmit" class="p-6 hidden">
+        <h3 class="text-lg font-semibold mb-4">Submit Deliverable</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Task ID</label>
+            <input type="number" id="submitTaskId" placeholder="0" min="0"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Deliverable Hash/URI</label>
+            <input type="text" id="deliverableHash" placeholder="ipfs://Qm... or https://..."
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-mono">
+          </div>
+          <button onclick="submitDeliverable()" 
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition">
+            Submit Deliverable
+          </button>
+        </div>
+      </div>
+
+      <!-- Verify Tab -->
+      <div id="panelVerify" class="p-6 hidden">
+        <h3 class="text-lg font-semibold mb-4">AI Verification</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Task ID to Verify</label>
+            <input type="number" id="verifyTaskId" placeholder="0" min="0" onchange="loadVerifyTaskInfo()"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500">
+          </div>
+          <div class="bg-gray-50 rounded-lg p-4" id="verifyTaskInfo">
+            <p class="text-gray-500 text-center">Enter task ID to see details</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <button onclick="dryRunScore()" 
+              class="bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition">
+              🔍 Preview Score
+            </button>
+            <button onclick="verifyAndResolve()" 
+              class="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition">
+              ✓ Verify On-Chain
+            </button>
+          </div>
+          <div id="scoreResult" class="hidden bg-purple-50 rounded-lg p-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction Log -->
+    <div class="card rounded-2xl shadow-xl p-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Activity Log</h2>
+      <div id="txLog" class="space-y-2 max-h-60 overflow-y-auto font-mono text-sm">
+        <p class="text-gray-400">Transactions will appear here...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let provider, signer, escrowContract, mneeContract;
+    let userAddress = null;
     
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
-    <script>
-        let provider;
-        let accounts = [];
-        let contractAddress;
-        let contractABI;
-        let contract;
-        
-        // Initialize
-        async function init() {
-            try {
-                // Load deployment info
-                const deployment = await fetch('../deployments/localhost-deployment.json').then(r => r.json());
-                contractAddress = deployment.contractAddress;
-                
-                // Load ABI
-                contractABI = await fetch('../sdk/AgentEscrow.abi.json').then(r => r.json());
-                
-                // Connect to provider
-                provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
-                contract = new ethers.Contract(contractAddress, contractABI, provider);
-                
-                // Get accounts
-                accounts = await provider.listAccounts();
-                
-                // Display accounts
-                displayAccounts();
-                
-                // Populate selects
-                populateSelects();
-                
-                // Load tasks and events
-                await refreshTasks();
-                await refreshEvents();
-                
-                // Listen to events
-                listenToEvents();
-                
-                console.log('Initialized with contract:', contractAddress);
-            } catch (error) {
-                showError('Failed to initialize: ' + error.message);
-                console.error(error);
-            }
+    const ESCROW_ABI = [
+      "function createTask(address payee, string description, uint256 amount, uint256 customTimeout) returns (uint256)",
+      "function submitDeliverable(uint256 taskId, string deliverableHash)",
+      "function scoreAndResolve(uint256 taskId, uint8 score)",
+      "function cancelTask(uint256 taskId, string reason)",
+      "function getTask(uint256 taskId) view returns (tuple(address payer, address payee, uint256 amount, string description, string deliverableHash, uint8 score, uint8 status, uint256 createdAt, uint256 submittedAt, uint256 timeout, uint256 payeeAmount, uint256 refundAmount))",
+      "function taskCount() view returns (uint256)",
+      "event TaskCreated(uint256 indexed taskId, address indexed payer, address indexed payee, uint256 amount, string description, uint256 timeout)",
+      "event TaskResolved(uint256 indexed taskId, uint256 payeeAmount, uint256 refundAmount, uint8 score)"
+    ];
+
+    const ERC20_ABI = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function approve(address spender, uint256 amount) returns (bool)",
+      "function allowance(address owner, address spender) view returns (uint256)",
+      "function decimals() view returns (uint8)"
+    ];
+
+    const VERIFIER_URL = 'http://localhost:3001';
+
+    async function connectWallet() {
+      try {
+        if (!window.ethereum) { alert('Please install MetaMask!'); return; }
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById('walletStatus').textContent = `Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+        document.getElementById('connectBtn').textContent = 'Connected';
+        document.getElementById('connectBtn').disabled = true;
+        log('✓ Wallet connected: ' + userAddress);
+        const contractAddr = document.getElementById('contractAddress').value;
+        if (contractAddr) await initContracts();
+      } catch (error) { log('✗ Connection failed: ' + error.message, 'error'); }
+    }
+
+    async function initContracts() {
+      try {
+        if (!signer) { alert('Please connect wallet first'); return; }
+        const contractAddr = document.getElementById('contractAddress').value;
+        const mneeAddr = document.getElementById('mneeAddress').value;
+        if (!contractAddr) { alert('Please enter escrow contract address'); return; }
+        escrowContract = new ethers.Contract(contractAddr, ESCROW_ABI, signer);
+        mneeContract = new ethers.Contract(mneeAddr, ERC20_ABI, signer);
+        const balance = await mneeContract.balanceOf(userAddress);
+        const decimals = await mneeContract.decimals();
+        document.getElementById('mneeBalance').textContent = ethers.formatUnits(balance, decimals);
+        document.getElementById('balanceDisplay').classList.remove('hidden');
+        document.getElementById('approveBtn').disabled = false;
+        log('✓ Contracts initialized');
+        await loadTasks();
+      } catch (error) { log('✗ Contract init failed: ' + error.message, 'error'); }
+    }
+
+    async function approveMNEE() {
+      try {
+        const contractAddr = document.getElementById('contractAddress').value;
+        const tx = await mneeContract.approve(contractAddr, ethers.MaxUint256);
+        log('⏳ Approving MNEE... ' + tx.hash);
+        await tx.wait();
+        log('✓ MNEE approved!');
+      } catch (error) { log('✗ Approval failed: ' + error.message, 'error'); }
+    }
+
+    async function createTask() {
+      try {
+        const payee = document.getElementById('payeeAddress').value;
+        const description = document.getElementById('taskDescription').value;
+        const amount = document.getElementById('taskAmount').value;
+        const timeout = document.getElementById('taskTimeout').value;
+        if (!payee || !description || !amount) { alert('Please fill all required fields'); return; }
+        const amountWei = ethers.parseUnits(amount, 6);
+        const timeoutSec = timeout * 24 * 60 * 60;
+        log('⏳ Creating task...');
+        const tx = await escrowContract.createTask(payee, description, amountWei, timeoutSec);
+        log('⏳ Transaction sent: ' + tx.hash);
+        await tx.wait();
+        log('✓ Task created! TX: ' + tx.hash);
+        await loadTasks();
+        document.getElementById('payeeAddress').value = '';
+        document.getElementById('taskDescription').value = '';
+        document.getElementById('taskAmount').value = '';
+      } catch (error) { log('✗ Task creation failed: ' + error.message, 'error'); }
+    }
+
+    async function loadTasks() {
+      try {
+        if (!escrowContract) return;
+        const taskCount = await escrowContract.taskCount();
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+        if (taskCount == 0) { taskList.innerHTML = '<p class="text-gray-500 text-center py-8">No tasks yet</p>'; return; }
+        const statusNames = ['Created', 'Submitted', 'Resolved', 'Cancelled', 'TimedOut'];
+        const statusColors = ['status-created', 'status-submitted', 'status-resolved', 'status-cancelled', 'status-timedout'];
+        for (let i = Number(taskCount) - 1; i >= 0 && i >= Number(taskCount) - 10; i--) {
+          const task = await escrowContract.getTask(i);
+          const status = Number(task.status);
+          const amount = ethers.formatUnits(task.amount, 6);
+          const isUserPayer = task.payer.toLowerCase() === userAddress.toLowerCase();
+          const isUserPayee = task.payee.toLowerCase() === userAddress.toLowerCase();
+          let roleTag = '';
+          if (isUserPayer) roleTag = '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Payer</span>';
+          if (isUserPayee) roleTag = '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Payee</span>';
+          let scoreDisplay = '';
+          if (status === 2) {
+            const score = Number(task.score);
+            const scoreClass = score >= 85 ? 'score-excellent' : score >= 70 ? 'score-good' : score >= 50 ? 'score-fair' : 'score-poor';
+            scoreDisplay = `<span class="font-bold ${scoreClass}">Score: ${score}/100</span>`;
+          }
+          const card = document.createElement('div');
+          card.className = 'border rounded-lg p-4 hover:shadow-md transition';
+          card.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+              <div><span class="font-bold text-lg">Task #${i}</span> ${roleTag}</div>
+              <span class="${statusColors[status]} font-medium">${statusNames[status]}</span>
+            </div>
+            <p class="text-gray-600 text-sm mb-2">${task.description.substring(0, 100)}${task.description.length > 100 ? '...' : ''}</p>
+            <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+              <span>💰 ${amount} MNEE</span>
+              ${task.deliverableHash ? `<span>📦 Delivered</span>` : ''}
+              ${scoreDisplay}
+            </div>
+            ${status === 0 && isUserPayee ? `<button onclick="quickSubmit(${i})" class="mt-2 text-sm text-blue-600 hover:underline">Submit →</button>` : ''}
+            ${status === 1 ? `<button onclick="quickVerify(${i})" class="mt-2 text-sm text-green-600 hover:underline">Verify →</button>` : ''}
+          `;
+          taskList.appendChild(card);
         }
-        
-        async function displayAccounts() {
-            const container = document.getElementById('accounts');
-            container.innerHTML = '';
-            
-            for (let i = 0; i < Math.min(accounts.length, 3); i++) {
-                const balance = await provider.getBalance(accounts[i]);
-                const div = document.createElement('div');
-                div.className = 'account';
-                div.innerHTML = `
-                    <h3>Account ${i}</h3>
-                    <div class="account-info">${accounts[i]}</div>
-                    <div class="balance">${ethers.utils.formatEther(balance)} ETH</div>
-                `;
-                container.appendChild(div);
-            }
-        }
-        
-        function populateSelects() {
-            const payerSelect = document.getElementById('payerSelect');
-            const payeeSelect = document.getElementById('payeeSelect');
-            
-            accounts.forEach((acc, i) => {
-                const option1 = document.createElement('option');
-                option1.value = acc;
-                option1.textContent = `Account ${i} - ${acc.substring(0, 10)}...`;
-                payerSelect.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = acc;
-                option2.textContent = `Account ${i} - ${acc.substring(0, 10)}...`;
-                payeeSelect.appendChild(option2);
-            });
-            
-            // Default: account 0 as payer, account 1 as payee
-            payerSelect.selectedIndex = 0;
-            payeeSelect.selectedIndex = 1;
-        }
-        
-        async function createTask() {
-            try {
-                const payerAddress = document.getElementById('payerSelect').value;
-                const payeeAddress = document.getElementById('payeeSelect').value;
-                const description = document.getElementById('taskDescription').value;
-                const amount = document.getElementById('taskAmount').value;
-                
-                if (payerAddress === payeeAddress) {
-                    showError('Payer and payee cannot be the same');
-                    return;
-                }
-                
-                if (!description || !amount) {
-                    showError('Please fill all fields');
-                    return;
-                }
-                
-                showSuccess('Creating task...');
-                
-                const signer = provider.getSigner(payerAddress);
-                const contractWithSigner = contract.connect(signer);
-                
-                const tx = await contractWithSigner.createTask(
-                    payeeAddress,
-                    description,
-                    { value: ethers.utils.parseEther(amount) }
-                );
-                
-                showSuccess('Transaction sent. Waiting for confirmation...');
-                await tx.wait();
-                
-                showSuccess('Task created successfully!');
-                
-                // Refresh
-                await displayAccounts();
-                await refreshTasks();
-                
-            } catch (error) {
-                showError('Error creating task: ' + error.message);
-                console.error(error);
-            }
-        }
-        
-        async function refreshTasks() {
-            try {
-                const taskCounter = await contract.taskCounter();
-                const taskList = document.getElementById('taskList');
-                taskList.innerHTML = '';
-                
-                if (taskCounter.toNumber() === 0) {
-                    taskList.innerHTML = '<div class="loading">No tasks yet</div>';
-                    return;
-                }
-                
-                for (let i = 0; i < taskCounter.toNumber(); i++) {
-                    const task = await contract.getTask(i);
-                    const div = document.createElement('div');
-                    div.className = 'task';
-                    
-                    const status = ['Created', 'Submitted', 'Resolved', 'Cancelled'][task[4]];
-                    
-                    div.innerHTML = `
-                        <div class="task-header">
-                            <span class="task-id">Task #${i}</span>
-                            <span class="task-status status-${status}">${status}</span>
-                        </div>
-                        <div class="task-info"><strong>Description:</strong> ${task[3]}</div>
-                        <div class="task-info"><strong>Amount:</strong> ${ethers.utils.formatEther(task[2])} ETH</div>
-                        <div class="task-info"><strong>Payer:</strong> ${task[0].substring(0, 20)}...</div>
-                        <div class="task-info"><strong>Payee:</strong> ${task[1].substring(0, 20)}...</div>
-                        ${task[7] ? `<div class="task-info"><strong>Deliverable:</strong> ${task[7]}</div>` : ''}
-                        ${task[8] > 0 ? `<div class="score-display">Score: ${task[8]}/100</div>` : ''}
-                        <div class="task-actions">
-                            ${status === 'Created' ? `<button onclick="submitDeliverable(${i})">Submit Deliverable</button>` : ''}
-                            ${status === 'Submitted' ? `<button onclick="verifyTask(${i})">Verify & Resolve</button>` : ''}
-                            ${status === 'Created' ? `<button onclick="cancelTask(${i})">Cancel</button>` : ''}
-                        </div>
-                    `;
-                    
-                    taskList.appendChild(div);
-                }
-            } catch (error) {
-                console.error('Error refreshing tasks:', error);
-            }
-        }
-        
-        async function submitDeliverable(taskId) {
-            try {
-                const task = await contract.getTask(taskId);
-                const payeeAddress = task[1];
-                
-                const deliverable = prompt('Enter deliverable hash (e.g., IPFS hash):');
-                if (!deliverable) return;
-                
-                showSuccess('Submitting deliverable...');
-                
-                const signer = provider.getSigner(payeeAddress);
-                const contractWithSigner = contract.connect(signer);
-                
-                const tx = await contractWithSigner.submitDeliverable(taskId, deliverable);
-                await tx.wait();
-                
-                showSuccess('Deliverable submitted successfully!');
-                await refreshTasks();
-                
-            } catch (error) {
-                showError('Error submitting deliverable: ' + error.message);
-                console.error(error);
-            }
-        }
-        
-        async function verifyTask(taskId) {
-            try {
-                // Use account 0 as verifier (deployer)
-                const verifierAddress = accounts[0];
-                
-                const score = prompt('Enter score (0-100):');
-                if (score === null) return;
-                
-                const scoreNum = parseInt(score);
-                if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 100) {
-                    showError('Score must be between 0 and 100');
-                    return;
-                }
-                
-                showSuccess('Verifying and resolving...');
-                
-                const signer = provider.getSigner(verifierAddress);
-                const contractWithSigner = contract.connect(signer);
-                
-                const tx = await contractWithSigner.scoreAndResolve(taskId, scoreNum);
-                await tx.wait();
-                
-                showSuccess('Task resolved successfully!');
-                await displayAccounts();
-                await refreshTasks();
-                
-            } catch (error) {
-                showError('Error verifying task: ' + error.message);
-                console.error(error);
-            }
-        }
-        
-        async function cancelTask(taskId) {
-            try {
-                const task = await contract.getTask(taskId);
-                const payerAddress = task[0];
-                
-                if (!confirm('Are you sure you want to cancel this task?')) return;
-                
-                showSuccess('Cancelling task...');
-                
-                const signer = provider.getSigner(payerAddress);
-                const contractWithSigner = contract.connect(signer);
-                
-                const tx = await contractWithSigner.cancelTask(taskId);
-                await tx.wait();
-                
-                showSuccess('Task cancelled successfully!');
-                await displayAccounts();
-                await refreshTasks();
-                
-            } catch (error) {
-                showError('Error cancelling task: ' + error.message);
-                console.error(error);
-            }
-        }
-        
-        async function refreshEvents() {
-            try {
-                const eventList = document.getElementById('eventList');
-                eventList.innerHTML = '<div class="loading">Loading events...</div>';
-                
-                const events = await contract.queryFilter('*');
-                
-                if (events.length === 0) {
-                    eventList.innerHTML = '<div class="loading">No events yet</div>';
-                    return;
-                }
-                
-                eventList.innerHTML = '';
-                
-                // Reverse to show newest first
-                events.reverse().forEach(event => {
-                    const div = document.createElement('div');
-                    div.className = 'event';
-                    div.innerHTML = `
-                        <div class="event-name">${event.event}</div>
-                        <div class="event-details">Block: ${event.blockNumber} | TX: ${event.transactionHash.substring(0, 20)}...</div>
-                    `;
-                    eventList.appendChild(div);
-                });
-            } catch (error) {
-                console.error('Error refreshing events:', error);
-            }
-        }
-        
-        function listenToEvents() {
-            contract.on('*', (event) => {
-                console.log('New event:', event);
-                refreshEvents();
-                refreshTasks();
-                displayAccounts();
-            });
-        }
-        
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-        
-        function showSuccess(message) {
-            const successDiv = document.getElementById('success');
-            successDiv.textContent = message;
-            successDiv.style.display = 'block';
-            setTimeout(() => {
-                successDiv.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Initialize on load
-        window.addEventListener('load', init);
-    </script>
+      } catch (error) { log('✗ Failed to load tasks: ' + error.message, 'error'); }
+    }
+
+    function quickSubmit(taskId) { document.getElementById('submitTaskId').value = taskId; showTab('submit'); }
+    function quickVerify(taskId) { document.getElementById('verifyTaskId').value = taskId; showTab('verify'); loadVerifyTaskInfo(); }
+
+    async function submitDeliverable() {
+      try {
+        const taskId = document.getElementById('submitTaskId').value;
+        const hash = document.getElementById('deliverableHash').value;
+        if (!taskId || !hash) { alert('Please fill all fields'); return; }
+        log('⏳ Submitting deliverable...');
+        const tx = await escrowContract.submitDeliverable(taskId, hash);
+        log('⏳ Transaction sent: ' + tx.hash);
+        await tx.wait();
+        log('✓ Deliverable submitted! TX: ' + tx.hash);
+        await loadTasks();
+      } catch (error) { log('✗ Submission failed: ' + error.message, 'error'); }
+    }
+
+    async function loadVerifyTaskInfo() {
+      try {
+        const taskId = document.getElementById('verifyTaskId').value;
+        if (!taskId || !escrowContract) return;
+        const task = await escrowContract.getTask(taskId);
+        const statusNames = ['Created', 'Submitted', 'Resolved', 'Cancelled', 'TimedOut'];
+        document.getElementById('verifyTaskInfo').innerHTML = `
+          <div class="space-y-2 text-sm">
+            <p><strong>Status:</strong> ${statusNames[Number(task.status)]}</p>
+            <p><strong>Description:</strong> ${task.description}</p>
+            <p><strong>Amount:</strong> ${ethers.formatUnits(task.amount, 6)} MNEE</p>
+            ${task.deliverableHash ? `<p><strong>Deliverable:</strong> <code class="text-xs break-all">${task.deliverableHash}</code></p>` : '<p class="text-yellow-600">⚠ No deliverable submitted yet</p>'}
+          </div>
+        `;
+      } catch (error) { document.getElementById('verifyTaskInfo').innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`; }
+    }
+
+    async function dryRunScore() {
+      try {
+        const taskId = document.getElementById('verifyTaskId').value;
+        if (!taskId) { alert('Please enter task ID'); return; }
+        const task = await escrowContract.getTask(taskId);
+        if (Number(task.status) !== 1) { alert('Task must be in Submitted status'); return; }
+        document.getElementById('scoreResult').classList.remove('hidden');
+        document.getElementById('scoreResult').innerHTML = '<p class="loading text-center">🔍 AI analyzing...</p>';
+        const response = await fetch(`${VERIFIER_URL}/score`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskDescription: task.description, deliverableHash: task.deliverableHash })
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error || 'Scoring failed');
+        const scoreClass = result.score >= 85 ? 'score-excellent' : result.score >= 70 ? 'score-good' : result.score >= 50 ? 'score-fair' : 'score-poor';
+        const amount = task.amount;
+        const payeeAmount = (amount * BigInt(result.score)) / 100n;
+        const refundAmount = amount - payeeAmount;
+        document.getElementById('scoreResult').innerHTML = `
+          <div class="space-y-3">
+            <div class="text-center">
+              <span class="text-4xl font-bold ${scoreClass}">${result.score}</span><span class="text-gray-500">/100</span>
+            </div>
+            <p class="text-sm text-gray-600"><strong>Reasoning:</strong> ${result.reasoning}</p>
+            <div class="flex justify-between text-sm font-medium">
+              <span class="text-green-600">Payee: ${ethers.formatUnits(payeeAmount, 6)} MNEE</span>
+              <span class="text-blue-600">Refund: ${ethers.formatUnits(refundAmount, 6)} MNEE</span>
+            </div>
+            <p class="text-xs text-gray-400 text-center">Model: ${result.model}</p>
+          </div>
+        `;
+        log(`✓ Preview score: ${result.score}/100`);
+      } catch (error) { document.getElementById('scoreResult').innerHTML = `<p class="text-red-500">Failed: ${error.message}</p>`; log('✗ ' + error.message, 'error'); }
+    }
+
+    async function verifyAndResolve() {
+      try {
+        const taskId = document.getElementById('verifyTaskId').value;
+        if (!taskId) { alert('Please enter task ID'); return; }
+        const task = await escrowContract.getTask(taskId);
+        if (Number(task.status) !== 1) { alert('Task must be in Submitted status'); return; }
+        log('⏳ Getting AI score...');
+        const scoreResponse = await fetch(`${VERIFIER_URL}/score`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskDescription: task.description, deliverableHash: task.deliverableHash })
+        });
+        const scoreResult = await scoreResponse.json();
+        if (!scoreResult.success) throw new Error(scoreResult.error);
+        const amount = ethers.formatUnits(task.amount, 6);
+        const payeeAmount = (Number(amount) * scoreResult.score / 100).toFixed(2);
+        const refundAmount = (Number(amount) - payeeAmount).toFixed(2);
+        if (!confirm(`Score: ${scoreResult.score}/100\n\nPayee: ${payeeAmount} MNEE\nRefund: ${refundAmount} MNEE\n\nSubmit to blockchain?`)) return;
+        log('⏳ Submitting to blockchain...');
+        const tx = await escrowContract.scoreAndResolve(taskId, scoreResult.score);
+        await tx.wait();
+        log(`✓ Resolved! Score: ${scoreResult.score}/100 | TX: ${tx.hash}`);
+        await loadTasks();
+        document.getElementById('scoreResult').innerHTML = `<div class="text-center"><p class="text-2xl">✅ Task Resolved!</p><p class="font-bold">${scoreResult.score}/100</p></div>`;
+      } catch (error) { log('✗ Resolution failed: ' + error.message, 'error'); }
+    }
+
+    function showTab(tabName) {
+      document.querySelectorAll('[id^="panel"]').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('[id^="tab"]').forEach(t => { t.classList.remove('border-purple-600', 'text-purple-600'); t.classList.add('border-transparent', 'text-gray-500'); });
+      document.getElementById('panel' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.remove('hidden');
+      const tab = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+      tab.classList.add('border-purple-600', 'text-purple-600');
+      tab.classList.remove('border-transparent', 'text-gray-500');
+      if (tabName === 'tasks' && escrowContract) loadTasks();
+    }
+
+    function log(message, type = 'info') {
+      const txLog = document.getElementById('txLog');
+      const entry = document.createElement('div');
+      entry.className = type === 'error' ? 'text-red-500' : 'text-gray-700';
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      if (txLog.children.length === 1 && txLog.children[0].textContent.includes('will appear')) txLog.innerHTML = '';
+      txLog.insertBefore(entry, txLog.firstChild);
+      console.log(message);
+    }
+
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', () => location.reload());
+      window.ethereum.on('chainChanged', () => location.reload());
+    }
+    window.addEventListener('load', async () => {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) await connectWallet();
+      }
+    });
+  </script>
 </body>
 </html>
