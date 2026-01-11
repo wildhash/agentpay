@@ -8,6 +8,7 @@ typechain-types/
 
 # Deployment files (keep .example)
 .env
+deployments/*.json
 
 # Logs
 *.log

@@ -13,6 +13,8 @@ AgentPay is a decentralized payment infrastructure built for the autonomous agen
 
 ## 🎯 For Hackathon Judges: Quick Start
 
+**📋 Full MNEE integration proof:** See [MNEE_INTEGRATION_SUMMARY.md](MNEE_INTEGRATION_SUMMARY.md) for detailed verification checklist.
+
 **Run the complete demo in 3 steps:**
 
 ```bash
@@ -38,6 +40,37 @@ npm run demo:full  # Terminal 2: Run demo with actual MNEE contract
 - ✅ AI verifier scores quality: **85/100**
 - ✅ Contract auto-splits: **85 MNEE to payee, 15 MNEE refund to payer**
 - ✅ All MNEE transfers logged on-chain
+
+### 🔍 Proof of MNEE Integration
+
+**Verify MNEE usage in code without compiling:**
+
+1. **Smart Contract** (`contracts/AgentEscrowMNEE.sol`):
+   - Line 18: `IERC20 public immutable mneeToken;` - Stores MNEE token reference
+   - Line 64: `mneeToken.transferFrom(msg.sender, address(this), _amount)` - Deposits MNEE
+   - Line 162-163: `mneeToken.transfer(payee, payeeAmount)` - Sends MNEE to worker
+   - Line 166: `mneeToken.transfer(payer, refundAmount)` - Sends MNEE refund
+
+2. **Deployment Script** (`scripts/deploy.js`):
+   - Line 11: `const MNEE_MAINNET = "0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF";`
+   - Line 33-36: Mainnet detection uses real MNEE contract
+
+3. **Demo Script** (`scripts/demo-scenario.js`):
+   - Line 16: `const DEMO_TASK_AMOUNT = "100"; // 100 MNEE`
+   - Lines 115-125: Shows MNEE approval and balance checks
+   - Lines 140-150: Shows MNEE transfers during settlement
+
+4. **SDK** (`sdk/AgentPaySDK.js`):
+   - Lines 60-80: MNEE-specific methods (`approveMnee`, `getMneeBalance`, etc.)
+   - Line 99: `await this.mneeToken.approve(...)` - Approval flow
+   - Line 115: `await this.contract.createTask(...)` - Uses approved MNEE
+
+**Run without internet (uses pre-compiled ABIs in `sdk/`):**
+```bash
+npm install  # Only needs to download npm packages
+npm run node  # No compilation needed for local node
+npm run demo:full  # Uses pre-built contract ABIs
+```
 
 ---
 
