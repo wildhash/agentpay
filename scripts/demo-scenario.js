@@ -200,7 +200,6 @@ async function main() {
   console.log(`   Gas Used: ${submitReceipt.gasUsed}\n`);
 
   // Show task status
-  const taskAfterSubmit = await escrow.getTask(taskId);
   console.log(`📋 Task Status: Submitted (awaiting verification)\n`);
 
   await sleep(1500);
