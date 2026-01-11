@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_RPC_URL": "@next-public-rpc-url",
+    "NEXT_PUBLIC_CHAIN_ID": "@next-public-chain-id",
+    "NEXT_PUBLIC_MNEE_ADDRESS": "@next-public-mnee-address",
+    "NEXT_PUBLIC_ESCROW_ADDRESS": "@next-public-escrow-address",
+    "SERVER_PRIVATE_KEY": "@server-private-key",
+    "VERIFIER_URL": "@verifier-url"
+  }
+}
