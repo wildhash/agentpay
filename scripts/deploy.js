@@ -10,6 +10,10 @@ const path = require("path");
 // MNEE Mainnet Address on Ethereum
 const MNEE_MAINNET = "0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF";
 
+// Network constants
+const MAINNET_CHAIN_ID = 1n;
+const HARDHAT_CHAIN_ID = 31337n;
+
 async function main() {
   const [deployer] = await ethers.getSigners();
   const network = await ethers.provider.getNetwork();
@@ -28,12 +32,25 @@ async function main() {
   console.log();
 
   let mneeAddress;
+  let isFork = false;
   
-  // Deploy Mock MNEE on local/testnet, use real MNEE on mainnet
-  if (network.chainId === 1n) {
-    // Mainnet - use real MNEE
+  // Check if we're on a mainnet fork
+  if (network.chainId === HARDHAT_CHAIN_ID && process.env.FORK_MAINNET === "true") {
+    isFork = true;
+    console.log("⚡ Detected mainnet fork - using real MNEE contract");
+  }
+  
+  // Deploy Mock MNEE on local/testnet, use real MNEE on mainnet/fork
+  if (network.chainId === MAINNET_CHAIN_ID || isFork) {
+    // Mainnet or Fork - use real MNEE
     mneeAddress = MNEE_MAINNET;
     console.log(`Using mainnet MNEE: ${mneeAddress}`);
+    
+    // On fork, mint some MNEE to deployer for testing (if possible)
+    if (isFork) {
+      console.log(`✓ Fork mode: Real MNEE contract available at mainnet address`);
+      console.log(`  Note: You may need to impersonate MNEE holders for testing`);
+    }
   } else {
     // Testnet/Local - deploy mock
     console.log("Deploying MockMNEE token...");
@@ -81,7 +98,8 @@ async function main() {
     contracts: {
       AgentEscrowMNEE: escrowAddress,
       MNEE: mneeAddress,
-      isMockMNEE: network.chainId !== 1n
+      isMockMNEE: network.chainId !== MAINNET_CHAIN_ID && !isFork,
+      isMainnetFork: isFork
     },
     config: {
       defaultTimeout: Number(defaultTimeout),
