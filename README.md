@@ -13,9 +13,44 @@ AgentPay is a decentralized payment infrastructure built for the autonomous agen
 
 ## 🎯 For Hackathon Judges: Quick Start
 
+### 🌐 Live Demo (Recommended)
+
+**[🚀 Try the Live Demo →](YOUR_VERCEL_URL_HERE)**
+
+Experience the full AgentPay flow in your browser:
+- ✅ Create tasks with MNEE escrow (server-signed transactions)
+- ✅ Submit deliverables and get AI scores
+- ✅ Watch automatic settlement with real-time event log
+- ✅ No MetaMask required - uses server signer for smooth demo experience
+
+**📹 Demo Video:** [Watch 2-minute walkthrough](YOUR_DEMO_VIDEO_URL_HERE)
+
+### 💻 Run Locally
+
 **📋 Full MNEE integration proof:** See [MNEE_INTEGRATION_SUMMARY.md](MNEE_INTEGRATION_SUMMARY.md) for detailed verification checklist.
 
-**Run the complete demo in 3 steps:**
+**Option 1: Next.js Web Demo (Recommended)**
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start Hardhat node (terminal 1)
+npm run node
+
+# 3. Deploy contracts (terminal 2)
+npm run deploy:local
+
+# 4. Start verifier service (terminal 3)
+npm run verifier:mock
+
+# 5. Start Next.js demo (terminal 4)
+cd demo-nextjs
+npm install
+npm run dev  # Open http://localhost:3000
+```
+
+**Option 2: Terminal Demo**
 
 ```bash
 # 1. Start local blockchain (in terminal 1)
@@ -24,7 +59,7 @@ npm run node
 # 2. Run full demo (in terminal 2) - deploys & demonstrates complete flow
 npm run demo:full
 
-# 3. (Optional) Start web UI
+# 3. (Optional) Start legacy web UI
 npm run web  # Open http://localhost:8080
 ```
 
@@ -231,11 +266,17 @@ npm run demo
 npm run verifier        # With Claude/OpenAI API keys
 npm run verifier:mock   # Without API keys (deterministic scoring)
 
-# Web UI (port 8080)
+# Next.js Demo App (port 3000) - Recommended
+cd demo-nextjs
+npm install
+npm run dev
+
+# Legacy Web UI (port 8080)
 npm run web
 ```
 
-Then open http://localhost:8080 and connect MetaMask!
+**Next.js Demo:** Open http://localhost:3000 (server-signer, no MetaMask needed)
+**Legacy UI:** Open http://localhost:8080 (requires MetaMask)
 
 ## 📋 Task Lifecycle
 
@@ -491,9 +532,17 @@ agentpay/
 │   └── demo-scenario.js       # Demo runner
 ├── verifier/
 │   └── server.js              # AI verification service
+├── demo-nextjs/               # 🆕 Next.js web demo (recommended)
+│   ├── app/                   # Next.js App Router
+│   │   ├── api/              # Server-side API routes
+│   │   └── page.tsx          # Main demo page
+│   ├── components/           # React components
+│   ├── lib/                  # Utilities and contract ABIs
+│   └── README.md             # Demo-specific documentation
 ├── web/
-│   └── index.html             # Web interface
+│   └── index.html             # Legacy web interface (MetaMask)
 ├── sdk/
+│   ├── AgentPaySDK.js         # JavaScript SDK
 │   └── AgentEscrowMNEE.abi.json
 ├── deployments/               # Deployment artifacts
 ├── hardhat.config.js
@@ -546,14 +595,48 @@ MIT License - see [LICENSE](LICENSE)
 
 ## 🔗 Links
 
-- **Demo**: [Live Demo](http://localhost:8080)
-- **Contract (Mainnet MNEE)**: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF`
+- **Live Demo**: [AgentPay Demo](YOUR_VERCEL_URL_HERE)
+- **Demo Video**: [Watch on YouTube](YOUR_DEMO_VIDEO_URL_HERE)
 - **GitHub**: https://github.com/wildhash/agentpay
+- **Contract (Mainnet MNEE)**: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF`
 - **MNEE**: https://mnee.io
+
+### Demo Instructions for Judges
+
+**🎬 Fastest Way: Watch the 2-minute video** → [Demo Video](YOUR_DEMO_VIDEO_URL_HERE)
+
+**🌐 Try it live:** [Live Demo](YOUR_VERCEL_URL_HERE) (no installation required)
+
+**💻 Run locally in 4 commands:**
+```bash
+git clone https://github.com/wildhash/agentpay.git && cd agentpay
+npm install
+npm run node &  # Start blockchain in background
+npm run demo:full  # See complete flow with MNEE payments
+```
+
+**Expected output:** Task created → 100 MNEE escrowed → AI scores deliverable → 85 MNEE to payee + 15 MNEE refund to payer
 
 ---
 
-## 📝 Devpost Submission
+## 📝 Devpost Submission Checklist
+
+### Required Deliverables
+
+- ✅ **Public Repository**: This repository is public and open source
+- ✅ **Open Source License**: MIT License included (see [LICENSE](LICENSE))
+- ✅ **README**: Comprehensive documentation with install/run instructions
+- ✅ **Source Code**: All contracts, backend, frontend code included
+- ✅ **Working Demo**:
+  - Live URL: [Demo App](YOUR_VERCEL_URL_HERE)
+  - Local demo: `npm run demo:full`
+- ✅ **Demo Video**: [2-minute walkthrough](YOUR_DEMO_VIDEO_URL_HERE) showing:
+  - Problem overview (agent payment challenges)
+  - Live demo: Create task → Submit → Verify → Settle
+  - MNEE integration (escrow, score-based split, settlement)
+  - Event log with transaction hashes
+  - Final balances showing payout + refund
+- ✅ **MNEE Integration**: Native MNEE stablecoin for all payments
 
 ### One-Liner
 AI-native payment infrastructure using MNEE stablecoin with smart contract escrow and LLM-powered quality verification for autonomous agent transactions.
