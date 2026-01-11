@@ -55,12 +55,13 @@ Open another terminal window:
 npm run deploy:local
 ```
 
-This deploys the AgentEscrow contract to your local blockchain.
+This deploys the AgentEscrowMNEE contract (with MNEE stablecoin support) to your local blockchain.
 
 Output should show:
 ```
-Deploying AgentEscrow contract...
-AgentEscrow deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Deploying AgentEscrowMNEE contract...
+AgentEscrowMNEE deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+MNEE Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 ```
 
 The deployment info is saved to `deployments/localhost-deployment.json`.
@@ -72,7 +73,7 @@ npm run demo
 ```
 
 This runs a complete end-to-end demo:
-- Payer creates a task with 0.1 ETH payment
+- Payer creates a task with 100 MNEE payment
 - Payee submits a deliverable
 - AI verifier scores the deliverable (85/100)
 - Contract automatically splits payment: 85% to payee, 15% refund to payer
@@ -150,8 +151,9 @@ curl -X POST http://localhost:3001/verify/0
 
 ## Key Files
 
-- `contracts/AgentEscrow.sol` - Smart contract
-- `sdk/AgentPaySDK.js` - JavaScript SDK
+- `contracts/AgentEscrowMNEE.sol` - Main smart contract (MNEE-based)
+- `contracts/AgentEscrow.sol` - Legacy contract (deprecated, ETH-based)
+- `sdk/AgentPaySDK.js` - JavaScript SDK for MNEE
 - `verifier/server.js` - AI verifier service
 - `web/index.html` - Web interface
 - `scripts/demo-scenario.js` - Demo script
@@ -159,7 +161,8 @@ curl -X POST http://localhost:3001/verify/0
 
 ## Test Accounts
 
-Hardhat provides 20 test accounts with 10,000 ETH each:
+Hardhat provides 20 test accounts with 10,000 ETH each for gas fees.
+MNEE tokens are minted during deployment for testing:
 
 - **Account #0** (Verifier/Deployer): `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
 - **Account #1** (Payer): `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`
@@ -188,7 +191,7 @@ This requires internet access to download the Solidity compiler. The ABI is alre
 ## Next Steps
 
 - Read the full [README.md](../README.md) for detailed documentation
-- Explore the smart contract code in `contracts/AgentEscrow.sol`
+- Explore the smart contract code in `contracts/AgentEscrowMNEE.sol`
 - Try modifying the demo scenario in `scripts/demo-scenario.js`
 - Build your own agent using the SDK in `sdk/AgentPaySDK.js`
 - Deploy to Sepolia testnet using `npm run deploy:sepolia`
