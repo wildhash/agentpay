@@ -104,7 +104,7 @@ async function main() {
     
     log('✅ Local blockchain is running', 'green');
     if (isForkMode) {
-      log('   📍 Using mainnet fork with real MNEE at 0x8cced...', 'cyan');
+      log('   📍 Using mainnet fork with real MNEE at 0x8ccedbAe...bFD6cF', 'cyan');
     }
     log('');
 

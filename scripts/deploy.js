@@ -10,6 +10,10 @@ const path = require("path");
 // MNEE Mainnet Address on Ethereum
 const MNEE_MAINNET = "0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF";
 
+// Network constants
+const MAINNET_CHAIN_ID = 1n;
+const HARDHAT_CHAIN_ID = 31337n;
+
 async function main() {
   const [deployer] = await ethers.getSigners();
   const network = await ethers.provider.getNetwork();
@@ -31,13 +35,13 @@ async function main() {
   let isFork = false;
   
   // Check if we're on a mainnet fork
-  if (network.chainId === 31337n && process.env.FORK_MAINNET === "true") {
+  if (network.chainId === HARDHAT_CHAIN_ID && process.env.FORK_MAINNET === "true") {
     isFork = true;
     console.log("⚡ Detected mainnet fork - using real MNEE contract");
   }
   
   // Deploy Mock MNEE on local/testnet, use real MNEE on mainnet/fork
-  if (network.chainId === 1n || isFork) {
+  if (network.chainId === MAINNET_CHAIN_ID || isFork) {
     // Mainnet or Fork - use real MNEE
     mneeAddress = MNEE_MAINNET;
     console.log(`Using mainnet MNEE: ${mneeAddress}`);
@@ -94,7 +98,7 @@ async function main() {
     contracts: {
       AgentEscrowMNEE: escrowAddress,
       MNEE: mneeAddress,
-      isMockMNEE: network.chainId !== 1n && !isFork,
+      isMockMNEE: network.chainId !== MAINNET_CHAIN_ID && !isFork,
       isMainnetFork: isFork
     },
     config: {

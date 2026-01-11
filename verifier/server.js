@@ -337,10 +337,20 @@ function simulateScoring(taskDescription, deliverableContent) {
  * Health check endpoint
  */
 app.get('/health', (req, res) => {
+  // Determine operational mode
+  let mode;
+  if (MOCK_VERIFIER) {
+    mode = 'mock';
+  } else if (ANTHROPIC_API_KEY || OPENAI_API_KEY) {
+    mode = 'ai';
+  } else {
+    mode = 'simulated';
+  }
+
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    mode: MOCK_VERIFIER ? 'mock' : (ANTHROPIC_API_KEY || OPENAI_API_KEY ? 'ai' : 'simulated'),
+    mode,
     config: {
       blockchain: !!contract,
       claude: !!ANTHROPIC_API_KEY,
@@ -533,6 +543,14 @@ app.post('/batch-score', async (req, res) => {
 // ============ Start Server ============
 initBlockchain();
 
+// Determine display mode for startup message
+function getVerifierMode() {
+  if (MOCK_VERIFIER) return 'MOCK (Deterministic)';
+  if (ANTHROPIC_API_KEY) return 'Claude AI';
+  if (OPENAI_API_KEY) return 'OpenAI GPT-4';
+  return 'Simulated';
+}
+
 app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════════════╗
@@ -540,7 +558,7 @@ app.listen(PORT, () => {
 ╠══════════════════════════════════════════════════════════╣
 ║  Port: ${PORT}                                              ║
 ║  Contract: ${CONTRACT_ADDRESS ? CONTRACT_ADDRESS.substring(0,20) + '...' : 'Not configured'}                   ║
-║  Mode: ${MOCK_VERIFIER ? 'MOCK (Deterministic)' : ANTHROPIC_API_KEY ? 'Claude AI' : OPENAI_API_KEY ? 'OpenAI GPT-4' : 'Simulated'}                              ║
+║  Mode: ${getVerifierMode()}                              ║
 ╠══════════════════════════════════════════════════════════╣
 ║  Endpoints:                                              ║
 ║    GET  /health           - Service health check         ║
