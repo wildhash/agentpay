@@ -1,12 +1,72 @@
 # 🤖 AgentPay — AI-Native Payments with MNEE
 
 [![Hackathon](https://img.shields.io/badge/MNEE-Hackathon-purple)](https://mnee.io)
+[![Hackathon](https://img.shields.io/badge/Hackathon-MNEE%20Programmable%20Money-blueviolet)](https://mnee.io)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue)](https://soliditylang.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 > **Trustless escrow + AI verification + instant partial/full refunds for autonomous agents**
 
 AgentPay is a decentralized payment infrastructure built for the autonomous agent economy. Using MNEE stablecoin on Ethereum, it enables AI agents to transact trustlessly with automatic quality-based settlements.
+
+---
+
+## 🎯 For Hackathon Judges: Quick Start
+
+**Run the complete demo in 3 steps:**
+
+```bash
+# 1. Start local blockchain (in terminal 1)
+npm run node
+
+# 2. Run full demo (in terminal 2) - deploys & demonstrates complete flow
+npm run demo:full
+
+# 3. (Optional) Start web UI
+npm run web  # Open http://localhost:8080
+```
+
+**For mainnet fork (uses real MNEE contract address):**
+```bash
+npm run node:fork  # Terminal 1: Fork mainnet with real MNEE
+npm run demo:full  # Terminal 2: Run demo with actual MNEE contract
+```
+
+**What you'll see:**
+- ✅ Agent A deposits **100 MNEE** into escrow contract
+- ✅ Agent B submits deliverable (Python code)
+- ✅ AI verifier scores quality: **85/100**
+- ✅ Contract auto-splits: **85 MNEE to payee, 15 MNEE refund to payer**
+- ✅ All MNEE transfers logged on-chain
+
+---
+
+## 💰 How We Use MNEE
+
+AgentPay is built **exclusively** on MNEE stablecoin for all payments:
+
+| MNEE Integration | Implementation |
+|------------------|----------------|
+| **Contract Reference** | Mainnet: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF` |
+| **Deposit Flow** | `MNEE.approve()` → `escrow.createTask()` → `MNEE.transferFrom()` |
+| **Settlement Flow** | Score-based split: `MNEE.transfer(payee)` + `MNEE.transfer(payer)` |
+| **Partial Refunds** | Quality score determines payout ratio (e.g., 85/100 = 85% payment, 15% refund) |
+| **USD Stability** | MNEE's peg ensures predictable costs for agents |
+| **Gas Efficiency** | ERC-20 standard, 6 decimals like USDC |
+
+**Key transactions visible in demo:**
+1. `approve(escrow, 100 MNEE)` - Payer authorizes escrow
+2. `transferFrom(payer, escrow, 100 MNEE)` - Funds locked in contract
+3. `transfer(payee, 85 MNEE)` - Quality-based payment
+4. `transfer(payer, 15 MNEE)` - Automatic refund
+
+**Why MNEE for agents?**
+- 💵 USD-stable pricing (no ETH volatility risk)
+- 🤖 Programmable money via smart contracts
+- ⚡ Fast finality on Ethereum L1
+- 🔒 Battle-tested ERC-20 security
+
+---
 
 ## 🎯 Problem Statement
 
@@ -84,11 +144,41 @@ cd agentpay
 # Install dependencies
 npm install
 
-# Copy environment file
+# Copy environment file (optional - works without API keys)
 cp .env.example .env
 ```
 
-### Run Demo (Local)
+### One-Command Demo
+
+The fastest way to see AgentPay in action:
+
+```bash
+# Terminal 1: Start local blockchain
+npm run node
+
+# Terminal 2: Run complete demo (auto-deploys + runs scenario)
+npm run demo:full
+```
+
+### Alternative: Mainnet Fork Mode (Recommended for Judges)
+
+Run with the **real MNEE contract** on a forked mainnet:
+
+```bash
+# Terminal 1: Fork Ethereum mainnet
+npm run node:fork
+
+# Terminal 2: Run demo (uses actual MNEE contract address)
+npm run demo:full
+```
+
+This mode:
+- ✅ Uses real MNEE contract address: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF`
+- ✅ Forks live Ethereum state locally
+- ✅ Deterministic and always works
+- ✅ Best for hackathon demonstrations
+
+### Manual Demo (Step-by-Step)
 
 ```bash
 # Terminal 1: Start local blockchain
@@ -105,7 +195,8 @@ npm run demo
 
 ```bash
 # AI Verifier service (port 3001)
-npm run verifier
+npm run verifier        # With Claude/OpenAI API keys
+npm run verifier:mock   # Without API keys (deterministic scoring)
 
 # Web UI (port 8080)
 npm run web

@@ -52,11 +52,14 @@
 3. Enter amount: 100 MNEE
 4. Set timeout: 7 days
 5. Click "Create Task & Deposit MNEE"
-6. Show MetaMask confirmation
+6. **HIGHLIGHT: Show MetaMask confirmation with MNEE approval + transfer**
 7. Show transaction success in Activity Log
+8. **EMPHASIZE: "100 MNEE now locked in escrow contract"**
 
 > "Agent A creates a task - a coding request - and deposits 100 MNEE into escrow.
-> The funds are now locked in the smart contract until verification."
+> Notice the two transactions: first we approve the escrow to spend MNEE, then transfer it.
+> The funds are now locked in the smart contract until AI verification completes.
+> This is MNEE's programmable money in action - the contract controls the payment flow."
 
 ---
 
@@ -108,11 +111,14 @@
 3. Show MetaMask transaction
 4. Wait for confirmation
 5. Show "Task Resolved!" success
-6. Switch to Tasks tab
-7. Show task with "Resolved" status and score
+6. **HIGHLIGHT: Show MNEE balance changes - payee +85, payer +15 refund**
+7. Switch to Tasks tab
+8. Show task with "Resolved" status and score
 
 > "One click settles everything on-chain. The MNEE is automatically split based on 
-> the AI score. No disputes, no manual intervention, completely trustless."
+> the AI score. Watch the balances: payee receives 85 MNEE, payer gets 15 MNEE back.
+> Two separate MNEE transfers, all automatic. No disputes, no manual intervention, 
+> completely trustless. This is programmable money enabling autonomous agent commerce."
 
 ---
 
@@ -133,22 +139,45 @@
 
 ## 📝 Key Points to Emphasize
 
-1. **MNEE Usage**: Show the token transfers, balances updating
-2. **Smart Contract**: Highlight the escrow locking funds
-3. **AI Verification**: Show the scoring breakdown clearly
-4. **Automatic Settlement**: Emphasize no manual intervention
-5. **Partial Refunds**: The unique value prop - quality-based splits
+1. **MNEE Usage**: Show the token transfers, balances updating, contract address
+2. **Programmable Money**: MNEE enables smart contract escrow logic
+3. **Smart Contract**: Highlight the escrow locking funds
+4. **AI Verification**: Show the scoring breakdown clearly
+5. **Automatic Settlement**: Emphasize no manual intervention
+6. **Partial Refunds**: The unique value prop - quality-based splits
+7. **Real-World Ready**: Uses actual MNEE mainnet contract (when forked)
 
 ---
 
 ## 🎯 Technical Highlights for Judges
 
 - **Contract**: `AgentEscrowMNEE.sol` with OpenZeppelin security
-- **MNEE Integration**: ERC-20 `transferFrom` for deposits, `transfer` for settlements
-- **AI Verifier**: Claude API scoring with structured JSON output
+- **MNEE Address**: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF` (Ethereum mainnet)
+- **MNEE Integration**: 
+  - ERC-20 `approve()` for spending permission
+  - `transferFrom()` for deposits into escrow
+  - `transfer()` for split settlements (payee + refund)
+- **AI Verifier**: Claude/GPT API scoring with structured JSON output
+- **Scoring Formula**: `payeeAmount = totalAmount × (score/100)`
 - **Role-Based Access**: Only authorized verifiers can resolve
 - **Timeout Protection**: Auto-refund after deadline
 - **Gas Optimized**: ~150k gas for full resolution
+
+---
+
+## 💡 Why MNEE for This Use Case
+
+**Traditional problems with ETH-based payments:**
+- ❌ Price volatility (task worth 0.05 ETH today, 0.04 ETH tomorrow)
+- ❌ Agents can't budget predictably
+- ❌ Refunds vary in fiat value
+
+**MNEE solves this:**
+- ✅ USD-stable pricing (100 MNEE = $100 always)
+- ✅ Agents can calculate costs accurately
+- ✅ Refunds maintain real value
+- ✅ ERC-20 standard = battle-tested security
+- ✅ Programmable via smart contracts
 
 ---
 
