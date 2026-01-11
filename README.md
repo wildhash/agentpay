@@ -131,14 +131,27 @@ Alternative paths:
 
 ## 🔧 Smart Contract API
 
+### MNEE Approval Flow (Important!)
+
+Before creating tasks, you **must** approve the escrow contract to spend MNEE:
+
+```javascript
+// Using ethers.js
+const mneeToken = new ethers.Contract(mneeAddress, mneeABI, signer);
+await mneeToken.approve(escrowAddress, amountInMnee);
+
+// Or approve unlimited
+await mneeToken.approve(escrowAddress, ethers.MaxUint256);
+```
+
 ### Core Functions
 
 ```solidity
-// Create a task with MNEE deposit
+// Create a task with MNEE deposit (requires prior approval!)
 function createTask(
     address payee,
     string description,
-    uint256 amount,
+    uint256 amount,        // Amount in MNEE (6 decimals)
     uint256 timeout
 ) returns (uint256 taskId)
 
@@ -208,6 +221,62 @@ curl http://localhost:3001/task/0
 curl http://localhost:3001/health
 ```
 
+## 📚 SDK Usage
+
+### JavaScript SDK Example
+
+```javascript
+const AgentPaySDK = require('./sdk/AgentPaySDK');
+
+// Initialize SDK with MNEE support
+const sdk = new AgentPaySDK(
+  'https://rpc.ethereum.org',           // RPC URL
+  '0xYourEscrowContractAddress',        // Escrow contract
+  '0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF', // MNEE token
+  'your_private_key'                    // Your private key
+);
+
+// Step 1: Check MNEE balance
+const balance = await sdk.getMneeBalance(myAddress);
+console.log(`MNEE Balance: ${balance}`);
+
+// Step 2: Approve MNEE spending (required before creating tasks!)
+await sdk.approveMnee('1000'); // Approve 1000 MNEE
+// Or approve unlimited: await sdk.approveMnee('max');
+
+// Step 3: Create a task
+const { taskId, txHash } = await sdk.createTask(
+  payeeAddress,
+  'Build a REST API for user authentication',
+  '100',  // 100 MNEE
+  0       // Use default timeout
+);
+console.log(`Task created: ${taskId}`);
+
+// Step 4: Submit deliverable (as payee)
+await sdk.submitDeliverable(taskId, 'ipfs://QmYourDeliverable123');
+
+// Step 5: Score and resolve (as verifier)
+const result = await sdk.scoreAndResolve(taskId, 90); // 90/100 score
+console.log(`Payee receives: ${result.payeeAmount} MNEE`);
+console.log(`Payer refund: ${result.refundAmount} MNEE`);
+
+// Query task details
+const task = await sdk.getTask(taskId);
+console.log(task);
+```
+
+### Key SDK Methods
+
+- `approveMnee(amount)` - Approve MNEE spending
+- `getMneeBalance(address)` - Get MNEE balance
+- `getMneeAllowance(owner)` - Check approval amount
+- `createTask(payee, description, amount, timeout)` - Create task
+- `submitDeliverable(taskId, hash)` - Submit work
+- `scoreAndResolve(taskId, score)` - Resolve task
+- `cancelTask(taskId, reason)` - Cancel task
+- `getTask(taskId)` - Get task details
+
 ## 🧪 Testing
 
 ```bash
@@ -234,6 +303,15 @@ npm run test:coverage
 
 ## 🌐 Deployment
 
+### Deployed Contracts
+
+#### Ethereum Mainnet
+- **MNEE Token**: `0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF`
+- **AgentEscrowMNEE**: _Deploy using instructions below_
+
+#### Local/Testnet
+For testing, the deployment script automatically deploys MockMNEE for local development.
+
 ### Testnet (Sepolia)
 
 ```bash
@@ -249,10 +327,16 @@ npm run deploy:sepolia
 
 ```bash
 # Configure .env with mainnet settings
-# MNEE will use: 0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF
+# Contract will use official MNEE: 0x8ccedbAe4916b79da7F3F612EfB2EB93A2bFD6cF
 
 npm run deploy:mainnet
 ```
+
+**Important**: The deployment script automatically:
+- Uses the official MNEE token address on mainnet (chain ID 1)
+- Deploys MockMNEE on testnets for testing
+- Saves deployment info to `deployments/{network}-deployment.json`
+- Exports ABIs to the `sdk/` directory
 
 ## 📁 Project Structure
 

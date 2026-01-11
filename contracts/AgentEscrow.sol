@@ -2,9 +2,22 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title AgentEscrow
- * @notice Smart contract escrow for agent-to-agent tasks with AI verification
- * @dev Implements MNEE (Multi-agent Native Economic Engine) with partial refund capability
+ * @title AgentEscrow (DEPRECATED)
+ * @notice ⚠️ THIS CONTRACT IS DEPRECATED - Use AgentEscrowMNEE instead ⚠️
+ * 
+ * This is the legacy ETH-native escrow contract. For the MNEE hackathon
+ * and production use, please use AgentEscrowMNEE.sol which supports
+ * MNEE ERC-20 stablecoin payments.
+ * 
+ * @dev This contract is kept for reference only. New deployments should
+ * use AgentEscrowMNEE which implements:
+ * - MNEE (ERC-20) token support
+ * - Enhanced security features
+ * - Role-based access control
+ * - Timeout handling
+ * - Better event logging
+ * 
+ * @custom:migration See AgentEscrowMNEE.sol for the MNEE-native implementation
  */
 contract AgentEscrow {
     
