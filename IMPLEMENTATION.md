@@ -7,35 +7,46 @@ AgentPay (MNEE - Multi-agent Native Economic Engine) is a complete Ethereum-base
 ## ✅ Completed Components
 
 ### 1. Smart Contract
-**File:** `contracts/AgentEscrow.sol`
+**File:** `contracts/AgentEscrowMNEE.sol`
 
 A production-ready Solidity smart contract featuring:
+- ✅ MNEE ERC-20 stablecoin integration
 - ✅ Escrow functionality for task-based payments
-- ✅ Multi-state task lifecycle (Created → Submitted → Resolved/Cancelled)
+- ✅ Multi-state task lifecycle (Created → Submitted → Resolved/Cancelled/TimedOut)
 - ✅ Score-based payment distribution (0-100)
 - ✅ Proportional refund mechanism
-- ✅ Role-based access control (payer, payee, verifier, owner)
+- ✅ Role-based access control (ADMIN_ROLE, VERIFIER_ROLE)
+- ✅ Timeout handling with auto-refund
 - ✅ Comprehensive event logging
-- ✅ Reentrancy protection
-- ✅ Input validation
+- ✅ ReentrancyGuard and Pausable features
+- ✅ SafeERC20 for secure token transfers
 
 **Key Functions:**
-- `createTask()` - Create task with escrowed funds
+- `createTask()` - Create task with MNEE deposit (requires prior approval)
 - `submitDeliverable()` - Submit work for verification
 - `scoreAndResolve()` - AI verifier scores and releases funds
 - `cancelTask()` - Cancel before submission with full refund
-- `updateVerifier()` - Update verifier address
+- `claimTimeout()` - Claim refund after timeout period
+
+**Note:** Legacy `AgentEscrow.sol` (ETH-based) is deprecated.
 
 ### 2. JavaScript SDK
 **File:** `sdk/AgentPaySDK.js`
 
-Full-featured SDK with:
+Full-featured SDK for MNEE-based escrow:
+- ✅ MNEE token interaction (approve, allowance, balance)
 - ✅ Contract interaction wrappers
 - ✅ Transaction signing and submission
 - ✅ Event parsing and listening
 - ✅ Read-only and signed operations
-- ✅ Balance queries
+- ✅ Proper decimal handling for MNEE (6 decimals)
 - ✅ Error handling
+
+**Key Methods:**
+- `approveMnee()` - Approve MNEE spending
+- `createTask()` - Create task with MNEE deposit
+- `getMneeBalance()` - Check MNEE balance
+- `getMneeAllowance()` - Check approval amount
 
 **Usage:** Perfect for Node.js applications, autonomous agents, and backend services.
 
@@ -170,7 +181,7 @@ Helper scripts:
 - Score: 0-100
 - Payee receives: `(score / 100) * amount`
 - Payer refund: `((100 - score) / 100) * amount`
-- Example: 85/100 on 1 ETH → 0.85 ETH to payee, 0.15 ETH refund
+- Example: 85/100 on 100 MNEE → 85 MNEE to payee, 15 MNEE refund
 
 ## 🔧 Technical Stack
 
@@ -211,11 +222,12 @@ npm run test         # Run test suite
 
 ### Production Deployment
 1. Configure `.env` with private key and RPC URL
-2. Get testnet ETH from faucet
-3. `npm run deploy:sepolia` - Deploy to testnet
-4. Update frontend/backend with new contract address
-5. Deploy verifier service to cloud
-6. Configure monitoring and alerts
+2. Get testnet ETH from faucet (for gas fees)
+3. Use existing MNEE token or deploy MockMNEE for testing
+4. `npm run deploy:sepolia` - Deploy to testnet
+5. Update frontend/backend with new contract address
+6. Deploy verifier service to cloud
+7. Configure monitoring and alerts
 
 ## 🔐 Security Features
 
@@ -231,7 +243,7 @@ npm run test         # Run test suite
 ## 📈 Future Enhancements
 
 Potential improvements (not implemented):
-- Multi-token support (ERC-20)
+- Multi-token support (additional ERC-20 tokens beyond MNEE)
 - Milestone-based payments
 - Dispute resolution
 - Real AI model integration
